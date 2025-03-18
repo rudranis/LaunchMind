@@ -146,7 +146,7 @@ const defaultSlides: PitchSlide[] = [
   {
     id: 'slide-10',
     title: 'The Ask',
-    content: 'Clearly state how much funding you're seeking and how you'll use it. Include your valuation and investment terms if applicable.',
+    content: "Clearly state how much funding you're seeking and how you'll use it. Include your valuation and investment terms if applicable.",
     order: 10
   }
 ];
