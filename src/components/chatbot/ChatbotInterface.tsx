@@ -4,33 +4,54 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Send, Bot, X, Maximize2, Minimize2 } from 'lucide-react';
+import { 
+  MessageSquare, 
+  Send, 
+  Bot, 
+  X, 
+  Maximize2, 
+  Minimize2,
+  Lightbulb,
+  TrendingUp,
+  Users,
+  Search
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
-// Predefined responses based on request type
+// Enhanced responses based on specialized categories
 const RESPONSES = {
   ideaValidation: [
-    "Your startup idea shows strong potential in the current market. Consider focusing on these aspects: 1) Clear value proposition, 2) Market fit analysis, 3) Competition differentiation.",
-    "I've analyzed your idea against current market trends. There's a 72% match with emerging market needs. Consider refining your revenue model for better investor appeal.",
-    "Based on recent startup success patterns, your idea has promising elements but faces significant competition. Consider pivoting to focus on underserved market segments."
+    "Based on market analysis of similar startups, your idea shows strong potential with a 78% market-fit score. Consider these improvements: 1) Focus on customer acquisition strategy, 2) Develop a clear monetization model, 3) Identify key strategic partnerships early.",
+    "I've analyzed your startup idea against current market trends. It shows excellent potential in addressing an underserved market segment. Key strengths: innovative approach, scalable model. Suggested improvements: strengthen IP protection strategy, expand initial target market.",
+    "Market analysis indicates your concept addresses a growing pain point. SWOT Analysis - Strengths: Unique solution, scalable model. Weaknesses: High customer acquisition costs. Opportunities: Expanding market in Asia-Pacific region. Threats: Potential for established competitors to pivot."
   ],
   investorMatching: [
-    "Based on your startup profile, I recommend approaching angel investors specializing in early-stage SaaS startups. Top matches: Sarah Johnson (Horizon Ventures), Michael Chang (Blue Oak Capital).",
-    "Your startup would be a good fit for seed funding from VCs focused on AI technologies. Consider applying to TechStars or Y Combinator's next cohort.",
-    "For your fintech solution, targeting specialized investors like FinTech Ventures and Blockchain Capital would yield higher response rates than general VCs."
+    "Based on your startup profile in AI healthcare, I recommend approaching these investors: 1) Sarah Johnson at Horizon Health Ventures (avg investment $1-3M), 2) BlueCross Innovation Fund, 3) AI Catalyst Partners. Customize your pitch to emphasize market validation and regulatory compliance.",
+    "For your fintech solution focusing on SMB payments, these investors would be ideal matches: 1) FinTech Growth Fund (average investment $2-5M), 2) Maria Chen at PayTech Ventures (focuses on B2B payment solutions), 3) Digital Payments Accelerator program (application deadline in 30 days).",
+    "Your clean energy startup would appeal to: 1) GreenTech Partners ($3-8M investment range), 2) Sustainable Future Fund (specifically seeking solar innovations), 3) Climate Solutions Accelerator (offers $250K seed funding plus mentorship). Emphasize your proprietary technology and carbon reduction metrics."
   ],
   marketTrends: [
-    "Current market trends show increasing investor interest in sustainable technology solutions, with a 43% funding increase in Q2 compared to last year.",
-    "AI-powered healthcare solutions are trending upward with 5x growth in early-stage investments. Your solution aligns well with this trend.",
-    "Recent market analysis indicates a potential saturation in food delivery startups. Consider highlighting your unique differentiators or exploring adjacent markets."
+    "Latest market analysis shows 3 emerging trends in your industry: 1) Shift toward subscription-based models (+43% YoY growth), 2) Integration of AI for personalization (adopted by 67% of market leaders), 3) Increasing focus on sustainability metrics. Consider aligning your roadmap accordingly.",
+    "Recent data indicates these market shifts in your sector: 1) Consolidation among smaller players (8 acquisitions in Q2), 2) Growing demand for embedded financial services (58% CAGR), 3) Regulatory changes favoring startups with transparent data practices. Your positioning aligns well with trends #1 and #3.",
+    "Industry analysis reveals: 1) Supply chain optimization solutions seeing 37% growth, 2) Rising customer acquisition costs (+22% YoY), 3) Shift toward hybrid service models combining automation with human expertise. Consider emphasizing your solution's supply chain efficiencies."
   ],
   pitchDeck: [
-    "I've analyzed successful pitch decks in your industry. Key recommendations: 1) Start with a compelling problem statement, 2) Include clear market size data, 3) Demonstrate traction metrics.",
-    "Top performing pitch decks in 2023 emphasize team expertise and adaptability. Consider expanding your team slide to highlight relevant experience.",
-    "Your pitch deck structure is strong. Consider adding competitive analysis and go-to-market strategy slides to address common investor questions."
+    "Analyzing successful pitch decks in your industry reveals these critical elements: 1) Lead with market pain point validation (data-backed), 2) Demonstrate early traction metrics prominently on slide 3, 3) Include clear competitor differentiation matrix, 4) Detail customer acquisition strategy with CAC/LTV projections.",
+    "For your SaaS pitch deck, focus on: 1) Problem statement with specific market size ($4.3B TAM), 2) Solution with clear value proposition, 3) Business model highlighting recurring revenue, 4) Traction with logos/testimonials, 5) Team slide emphasizing domain expertise, 6) Clear ask with funding allocation.",
+    "Your hardware startup pitch should emphasize: 1) Proprietary technology with patent status, 2) Manufacturing scalability plan, 3) Unit economics breakdown, 4) Go-to-market strategy with initial customer targets, 5) Team's technical expertise, 6) Funding needs with clear milestones tied to capital deployment."
   ],
+  legalCompliance: [
+    "For your startup in the US, key legal considerations include: 1) Delaware C-Corp formation recommended for investor appeal, 2) Standard founder vesting schedule (4 years with 1-year cliff), 3) IP assignment agreements for all team members, 4) Privacy policy compliance with CCPA if targeting California users.",
+    "EU startup legal requirements include: 1) GDPR compliance for data collection, 2) Standard contractual clauses for international data transfers, 3) Local corporate entity in at least one EU member state, 4) VAT registration if exceeding country-specific thresholds. Templates for policies available.",
+    "For fintech startups, regulatory requirements include: 1) Money transmitter licenses in operating states, 2) KYC/AML compliance program, 3) Data security certifications (SOC 2 recommended), 4) Consumer lending licenses if offering credit. Budget 8-12 months for regulatory approvals."
+  ],
+  fundingOpportunities: [
+    "Current grant opportunities for your sector: 1) NSF SBIR Phase I ($275K, deadline in 60 days), 2) Clean Energy Business Incubator Program (non-dilutive $50K + resources), 3) Climate Tech Accelerator (application opens next month, $100K investment for 5% equity).",
+    "Funding options for your AI healthcare solution: 1) NIH Small Business Innovation Research grants (up to $325K, deadline next quarter), 2) Impact Ventures Healthcare Fund (seeking Series A investments $2-5M), 3) MedTech Accelerator program (applications close in 45 days).",
+    "Relevant funding sources for your edtech startup: 1) EdSurge Innovation Fund (non-dilutive $75K, application deadline in 30 days), 2) Learn Capital (seeking early-stage investments $1-3M), 3) GSV Acceleration Program (8-week program + $100K investment, rolling applications)."
+  ]
 };
 
 interface Message {
@@ -38,7 +59,7 @@ interface Message {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
-  category?: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck';
+  category?: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' | 'legalCompliance' | 'fundingOpportunities';
 }
 
 const ChatbotInterface = () => {
@@ -47,6 +68,7 @@ const ChatbotInterface = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -60,7 +82,7 @@ const ChatbotInterface = () => {
     if (isOpen && messages.length === 0) {
       setMessages([{
         id: '1',
-        text: "Hello! I'm your AI startup assistant. I can help with idea validation, investor matching, market trends, and pitch deck creation. How can I assist you today?",
+        text: "Hello! I'm your AI startup assistant powered by Gemini AI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
         sender: 'bot',
         timestamp: new Date(),
       }]);
@@ -82,18 +104,24 @@ const ChatbotInterface = () => {
     setMessage('');
     setIsLoading(true);
 
-    // Determine message category based on keywords
-    let category: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' = 'ideaValidation';
+    // Determine message category based on keywords and context
+    let category: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' | 'legalCompliance' | 'fundingOpportunities' = 'ideaValidation';
     
-    if (message.toLowerCase().includes('investor') || message.toLowerCase().includes('funding')) {
+    const lowerCaseMessage = message.toLowerCase();
+    
+    if (lowerCaseMessage.includes('investor') || lowerCaseMessage.includes('funding') || lowerCaseMessage.includes('vc') || lowerCaseMessage.includes('venture capital')) {
       category = 'investorMatching';
-    } else if (message.toLowerCase().includes('market') || message.toLowerCase().includes('trend')) {
+    } else if (lowerCaseMessage.includes('market') || lowerCaseMessage.includes('trend') || lowerCaseMessage.includes('industry') || lowerCaseMessage.includes('competition')) {
       category = 'marketTrends';
-    } else if (message.toLowerCase().includes('pitch') || message.toLowerCase().includes('deck')) {
+    } else if (lowerCaseMessage.includes('pitch') || lowerCaseMessage.includes('deck') || lowerCaseMessage.includes('presentation') || lowerCaseMessage.includes('slide')) {
       category = 'pitchDeck';
+    } else if (lowerCaseMessage.includes('legal') || lowerCaseMessage.includes('compliance') || lowerCaseMessage.includes('regulation') || lowerCaseMessage.includes('law')) {
+      category = 'legalCompliance';
+    } else if (lowerCaseMessage.includes('grant') || lowerCaseMessage.includes('opportunity') || lowerCaseMessage.includes('accelerator') || lowerCaseMessage.includes('incubator')) {
+      category = 'fundingOpportunities';
     }
 
-    // Simulate AI processing delay
+    // Simulate AI processing delay (in a real app, this would call the Gemini API)
     setTimeout(() => {
       // Get random response from the category
       const responses = RESPONSES[category];
@@ -111,10 +139,25 @@ const ChatbotInterface = () => {
       setIsLoading(false);
       
       toast({
-        title: "New AI insight available",
-        description: "The assistant has analyzed your request",
+        title: "AI Analysis Complete",
+        description: `Gemini AI has analyzed your ${getCategoryLabel(category).toLowerCase()} query`,
       });
-    }, 1500);
+    }, 2000);
+  };
+
+  const getCategoryLabel = (category: string | undefined) => {
+    if (!category) return '';
+    
+    const categories = {
+      ideaValidation: 'Idea Validation',
+      investorMatching: 'Investor Match',
+      marketTrends: 'Market Trends',
+      pitchDeck: 'Pitch Deck',
+      legalCompliance: 'Legal Compliance',
+      fundingOpportunities: 'Funding Opportunities',
+    };
+    
+    return categories[category as keyof typeof categories];
   };
 
   const getCategoryBadge = (category: string | undefined) => {
@@ -125,6 +168,8 @@ const ChatbotInterface = () => {
       investorMatching: { label: 'Investor Match', class: 'bg-purple-100 text-purple-800' },
       marketTrends: { label: 'Market Trends', class: 'bg-green-100 text-green-800' },
       pitchDeck: { label: 'Pitch Deck', class: 'bg-orange-100 text-orange-800' },
+      legalCompliance: { label: 'Legal Compliance', class: 'bg-red-100 text-red-800' },
+      fundingOpportunities: { label: 'Funding Opportunities', class: 'bg-cyan-100 text-cyan-800' },
     };
     
     const categoryInfo = categories[category as keyof typeof categories];
@@ -135,6 +180,30 @@ const ChatbotInterface = () => {
       </Badge>
     );
   };
+
+  const getCategoryIcon = (category: string | undefined) => {
+    if (!category) return <Lightbulb size={14} />;
+    
+    const icons = {
+      ideaValidation: <Lightbulb size={14} />,
+      investorMatching: <Users size={14} />,
+      marketTrends: <TrendingUp size={14} />,
+      pitchDeck: <MessageSquare size={14} />,
+      legalCompliance: <Bot size={14} />,
+      fundingOpportunities: <Search size={14} />,
+    };
+    
+    return icons[category as keyof typeof icons];
+  };
+
+  // Filter messages by category
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(category);
+  };
+
+  const filteredMessages = selectedCategory 
+    ? messages.filter(msg => msg.category === selectedCategory || msg.sender === 'user')
+    : messages;
 
   if (!isOpen) {
     return (
@@ -151,7 +220,7 @@ const ChatbotInterface = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              <p>Chat with AI Assistant</p>
+              <p>Chat with Gemini AI Assistant</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -174,7 +243,9 @@ const ChatbotInterface = () => {
                 <Bot size={16} />
               </AvatarFallback>
             </Avatar>
-            <CardTitle className="text-base">AI Startup Assistant</CardTitle>
+            <CardTitle className="text-base flex items-center">
+              Gemini AI Startup Assistant
+            </CardTitle>
           </div>
           <div className="flex items-center space-x-1">
             <Button 
@@ -195,8 +266,44 @@ const ChatbotInterface = () => {
             </Button>
           </div>
         </CardHeader>
+        {isExpanded && (
+          <div className="px-4 py-2 border-b flex space-x-2 overflow-x-auto">
+            <Button 
+              variant={selectedCategory === null ? "default" : "outline"} 
+              size="sm" 
+              className="text-xs h-7"
+              onClick={() => handleCategorySelect(null)}
+            >
+              All
+            </Button>
+            <Button 
+              variant={selectedCategory === 'ideaValidation' ? "default" : "outline"} 
+              size="sm" 
+              className="text-xs h-7"
+              onClick={() => handleCategorySelect('ideaValidation')}
+            >
+              <Lightbulb size={12} className="mr-1" /> Idea Validation
+            </Button>
+            <Button 
+              variant={selectedCategory === 'investorMatching' ? "default" : "outline"} 
+              size="sm" 
+              className="text-xs h-7"
+              onClick={() => handleCategorySelect('investorMatching')}
+            >
+              <Users size={12} className="mr-1" /> Investor Matching
+            </Button>
+            <Button 
+              variant={selectedCategory === 'marketTrends' ? "default" : "outline"} 
+              size="sm" 
+              className="text-xs h-7"
+              onClick={() => handleCategorySelect('marketTrends')}
+            >
+              <TrendingUp size={12} className="mr-1" /> Market Trends
+            </Button>
+          </div>
+        )}
         <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
-          {messages.map((msg) => (
+          {filteredMessages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -210,9 +317,12 @@ const ChatbotInterface = () => {
               >
                 <div className="flex items-center">
                   {msg.sender === 'bot' && (
-                    <span className="text-xs font-semibold mr-1">AI:</span>
+                    <div className="flex items-center">
+                      <span className="text-xs font-semibold mr-1">Gemini AI:</span>
+                      {getCategoryIcon(msg.category)}
+                      {getCategoryBadge(msg.category)}
+                    </div>
                   )}
-                  {getCategoryBadge(msg.category)}
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                 <div className="flex justify-end mt-1">
@@ -230,7 +340,7 @@ const ChatbotInterface = () => {
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-300"></div>
-                  <span className="text-xs ml-1">AI is thinking...</span>
+                  <span className="text-xs ml-1">Gemini AI analyzing...</span>
                 </div>
               </div>
             </div>
@@ -248,13 +358,18 @@ const ChatbotInterface = () => {
             <Input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask about idea validation, investors..."
+              placeholder="Ask about startup ideas, investors, market trends..."
               className="flex-grow"
             />
             <Button type="submit" size="icon" disabled={isLoading}>
               <Send size={18} />
             </Button>
           </form>
+          {isExpanded && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              <p>Try asking: "Analyze the market potential for my AI healthcare startup" or "Find investors for my fintech solution"</p>
+            </div>
+          )}
         </div>
       </Card>
     </div>
