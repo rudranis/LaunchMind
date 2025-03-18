@@ -1,7 +1,7 @@
 
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import Card from './Card';
+import { Card } from '@/components/ui/card';
 
 interface FeatureCardProps {
   title: string;
@@ -13,8 +13,7 @@ interface FeatureCardProps {
 const FeatureCard = ({ title, description, icon, className }: FeatureCardProps) => {
   return (
     <Card 
-      className={cn('h-full transition-all duration-300 hover:shadow-xl', className)} 
-      hover={true}
+      className={cn('h-full transition-all duration-300 hover:shadow-xl', className)}
     >
       <div className="p-6 flex flex-col h-full">
         <div className="mb-4 p-3 rounded-full bg-primary/10 w-fit">
