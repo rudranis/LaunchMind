@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ChatbotInterface from "./components/chatbot/ChatbotInterface";
+import AIPitchGenerator from "./components/dashboard/AIPitchGenerator";
+import AIIdeaValidator from "./components/dashboard/AIIdeaValidator";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/pitch-generator" element={<AIPitchGenerator />} />
+          <Route path="/idea-validator" element={<AIIdeaValidator />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

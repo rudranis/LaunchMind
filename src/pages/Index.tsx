@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { 
   Brain, 
@@ -15,7 +14,7 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import FeatureCard from '@/components/ui/FeatureCard';
 import AnimatedButton from '@/components/ui/AnimatedButton';
-import Card, { CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Index = () => {
   return (
@@ -407,3 +406,4 @@ const Index = () => {
 };
 
 export default Index;
+
