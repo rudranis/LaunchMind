@@ -14,7 +14,8 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import FeatureCard from '@/components/ui/FeatureCard';
 import AnimatedButton from '@/components/ui/AnimatedButton';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
+import Card from '@/components/ui/Card';
 
 const Index = () => {
   return (
@@ -406,4 +407,3 @@ const Index = () => {
 };
 
 export default Index;
-
