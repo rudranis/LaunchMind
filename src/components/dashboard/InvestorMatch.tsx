@@ -8,6 +8,7 @@ import { Search, Users, MessageSquare, Filter, MapPin } from 'lucide-react';
 import CustomCard, { CardContent, CardHeader, CardTitle, CardDescription } from '../ui/CustomCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 
 // Mock investor data
 const investors = [
