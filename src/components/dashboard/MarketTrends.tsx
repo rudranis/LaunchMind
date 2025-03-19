@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Card, { CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
+import CustomCard, { CardContent, CardHeader, CardTitle, CardDescription } from '../ui/CustomCard';
 import { TrendingUp, Layers, PieChart as PieChartIcon, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock data for market trends
 const trendData = [
   { month: 'Jan', ai: 45, blockchain: 20, healthtech: 30, fintech: 60 },
   { month: 'Feb', ai: 50, blockchain: 25, healthtech: 35, fintech: 65 },
@@ -40,7 +38,7 @@ const TrendingStartupCard = ({
   className?: string;
 }) => {
   return (
-    <Card className={cn("h-full", className)} hover>
+    <CustomCard className={cn("h-full", className)} hover>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-medium">{name}</h3>
@@ -57,7 +55,7 @@ const TrendingStartupCard = ({
         <p className="text-sm text-muted-foreground mb-3">{sector}</p>
         <p className="text-sm">{description}</p>
       </CardContent>
-    </Card>
+    </CustomCard>
   );
 };
 
@@ -65,7 +63,6 @@ const MarketTrends = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
@@ -100,7 +97,7 @@ const MarketTrends = () => {
         </TabsList>
         
         <TabsContent value="trends" className="mt-0">
-          <Card>
+          <CustomCard>
             <CardHeader>
               <CardTitle>Funding Trends by Sector</CardTitle>
               <CardDescription>Monthly funding data across top startup sectors</CardDescription>
@@ -176,10 +173,10 @@ const MarketTrends = () => {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </CustomCard>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <Card>
+            <CustomCard>
               <CardHeader>
                 <CardTitle className="flex items-center text-base">
                   <TrendingUp className="w-4 h-4 mr-2 text-primary" />
@@ -200,9 +197,9 @@ const MarketTrends = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </CustomCard>
             
-            <Card>
+            <CustomCard>
               <CardHeader>
                 <CardTitle className="flex items-center text-base">
                   <BarChart3 className="w-4 h-4 mr-2 text-primary" />
@@ -223,9 +220,9 @@ const MarketTrends = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </CustomCard>
             
-            <Card>
+            <CustomCard>
               <CardHeader>
                 <CardTitle className="flex items-center text-base">
                   <Layers className="w-4 h-4 mr-2 text-primary" />
@@ -246,13 +243,13 @@ const MarketTrends = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </CustomCard>
           </div>
         </TabsContent>
         
         <TabsContent value="sectors" className="mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <CustomCard>
               <CardHeader>
                 <CardTitle>Top Startup Sectors</CardTitle>
                 <CardDescription>Distribution of funding across sectors</CardDescription>
@@ -287,9 +284,9 @@ const MarketTrends = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </CustomCard>
             
-            <Card>
+            <CustomCard>
               <CardHeader>
                 <CardTitle>Sector Growth Rates</CardTitle>
                 <CardDescription>Year-over-year growth percentage</CardDescription>
@@ -343,7 +340,7 @@ const MarketTrends = () => {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </CustomCard>
           </div>
         </TabsContent>
         
@@ -351,7 +348,7 @@ const MarketTrends = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {isLoading ? (
               Array(6).fill(0).map((_, i) => (
-                <Card key={i} className="h-40">
+                <CustomCard key={i} className="h-40">
                   <CardContent className="p-6">
                     <div className="space-y-3">
                       <Skeleton className="h-5 w-3/4" />
@@ -360,7 +357,7 @@ const MarketTrends = () => {
                       <Skeleton className="h-4 w-full" />
                     </div>
                   </CardContent>
-                </Card>
+                </CustomCard>
               ))
             ) : (
               <>

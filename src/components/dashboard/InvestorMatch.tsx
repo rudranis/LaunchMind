@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Users, MessageSquare, Filter, MapPin } from 'lucide-react';
-import Card, { CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
+import CustomCard, { CardContent, CardHeader, CardTitle, CardDescription } from '../ui/CustomCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -160,7 +160,7 @@ const InvestorMatch = () => {
         Investor Matching
       </h2>
       
-      <Card>
+      <CustomCard>
         <CardHeader>
           <CardTitle>Find Your Perfect Investor</CardTitle>
           <CardDescription>
@@ -282,7 +282,7 @@ const InvestorMatch = () => {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </CustomCard>
     </div>
   );
 };
