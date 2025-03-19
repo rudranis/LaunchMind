@@ -1,9 +1,20 @@
 
+import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Startup } from '@/models/Startup';
 import { Investor } from '@/models/Investor';
 import { MarketInsight } from '@/models/MarketInsight';
 import { PitchDeck } from '@/models/PitchDeck';
+
+// Helper function to convert string ID to ObjectId
+const toObjectId = (id: string): ObjectId => {
+  try {
+    return new ObjectId(id);
+  } catch (error) {
+    console.error('Invalid ObjectId format:', error);
+    throw new Error('Invalid ID format');
+  }
+};
 
 // Startup API methods
 export async function getStartups() {
@@ -20,7 +31,7 @@ export async function getStartups() {
 export async function getStartupById(id: string) {
   try {
     const { db } = await connectToDatabase();
-    const startup = await db.collection('startups').findOne({ _id: id });
+    const startup = await db.collection('startups').findOne({ _id: toObjectId(id) });
     return { success: true, data: startup };
   } catch (error) {
     console.error(`Failed to fetch startup with id ${id}:`, error);
@@ -28,7 +39,7 @@ export async function getStartupById(id: string) {
   }
 }
 
-export async function createStartup(startup: Startup) {
+export async function createStartup(startup: Omit<Startup, '_id'>) {
   try {
     const { db } = await connectToDatabase();
     const result = await db.collection('startups').insertOne({
@@ -58,7 +69,7 @@ export async function getInvestors() {
 export async function getInvestorById(id: string) {
   try {
     const { db } = await connectToDatabase();
-    const investor = await db.collection('investors').findOne({ _id: id });
+    const investor = await db.collection('investors').findOne({ _id: toObjectId(id) });
     return { success: true, data: investor };
   } catch (error) {
     console.error(`Failed to fetch investor with id ${id}:`, error);
@@ -66,7 +77,7 @@ export async function getInvestorById(id: string) {
   }
 }
 
-export async function createInvestor(investor: Investor) {
+export async function createInvestor(investor: Omit<Investor, '_id'>) {
   try {
     const { db } = await connectToDatabase();
     const result = await db.collection('investors').insertOne({
@@ -84,7 +95,7 @@ export async function createInvestor(investor: Investor) {
 export async function matchInvestorsForStartup(startupId: string) {
   try {
     const { db } = await connectToDatabase();
-    const startup = await db.collection('startups').findOne({ _id: startupId });
+    const startup = await db.collection('startups').findOne({ _id: toObjectId(startupId) });
     
     if (!startup) {
       return { success: false, error: 'Startup not found' };
@@ -131,7 +142,7 @@ export async function getPitchDecksForStartup(startupId: string) {
   }
 }
 
-export async function createPitchDeck(pitchDeck: PitchDeck) {
+export async function createPitchDeck(pitchDeck: Omit<PitchDeck, '_id'>) {
   try {
     const { db } = await connectToDatabase();
     const result = await db.collection('pitchDecks').insertOne({

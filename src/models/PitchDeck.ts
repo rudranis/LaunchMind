@@ -1,4 +1,6 @@
 
+import { ObjectId } from 'mongodb';
+
 export interface Slide {
   type: 'problem' | 'solution' | 'market' | 'product' | 'traction' | 'business-model' | 'competition' | 'team' | 'financials' | 'ask' | 'custom';
   title: string;
@@ -17,7 +19,7 @@ export interface AiFeedback {
 }
 
 export interface PitchDeck {
-  _id?: string;
+  _id?: ObjectId;
   startupId: string;
   title: string;
   version: number;

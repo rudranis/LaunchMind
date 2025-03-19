@@ -1,4 +1,6 @@
 
+import { ObjectId } from 'mongodb';
+
 export interface Investment {
   startupName: string;
   startupId?: string;
@@ -12,7 +14,7 @@ export interface Investment {
 }
 
 export interface Investor {
-  _id?: string;
+  _id?: ObjectId;
   name: string;
   type: 'Angel' | 'VC' | 'Corporate' | 'Accelerator' | 'Family Office' | 'Crowdfunding';
   firm?: string;

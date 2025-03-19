@@ -1,4 +1,6 @@
 
+import { ObjectId } from 'mongodb';
+
 export interface Founder {
   id: string;
   name: string;
@@ -76,7 +78,7 @@ export interface TokenizationDetails {
 }
 
 export interface Startup {
-  _id?: string;
+  _id?: ObjectId;
   name: string;
   slug: string;
   tagline: string;

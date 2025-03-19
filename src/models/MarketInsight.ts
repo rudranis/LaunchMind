@@ -1,4 +1,6 @@
 
+import { ObjectId } from 'mongodb';
+
 export interface CompetitorAnalysis {
   name: string;
   website?: string;
@@ -35,7 +37,7 @@ export interface MarketTrend {
 }
 
 export interface MarketInsight {
-  _id?: string;
+  _id?: ObjectId;
   industry: string[];
   marketSize: number;
   cagr: number;
