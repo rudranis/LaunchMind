@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { 
   Brain, 
@@ -14,8 +15,8 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import FeatureCard from '@/components/ui/FeatureCard';
 import AnimatedButton from '@/components/ui/AnimatedButton';
-import { CardContent } from '@/components/ui/card';
-import Card from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
+import CustomCard from '@/components/ui/CustomCard';
 
 const Index = () => {
   return (
@@ -84,7 +85,7 @@ const Index = () => {
             <div className="relative animate-fade-in">
               <div className="relative">
                 <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/20 to-blue-400/20 blur-xl opacity-70" />
-                <Card glassmorphism className="overflow-hidden bg-white/80 backdrop-blur-xl">
+                <CustomCard glassmorphism className="overflow-hidden bg-white/80 backdrop-blur-xl">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-xl font-semibold">AI Validation Results</h3>
@@ -133,7 +134,7 @@ const Index = () => {
                       </p>
                     </div>
                   </CardContent>
-                </Card>
+                </CustomCard>
               </div>
               
               <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>

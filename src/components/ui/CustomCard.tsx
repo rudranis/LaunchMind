@@ -9,7 +9,7 @@ interface CardProps {
   hover?: boolean;
 }
 
-const Card = ({ children, className, glassmorphism = false, hover = false }: CardProps) => {
+const CustomCard = ({ children, className, glassmorphism = false, hover = false }: CardProps) => {
   return (
     <div
       className={cn(
@@ -50,4 +50,4 @@ export const CardFooter = ({ children, className }: { children: ReactNode; class
   return <div className={cn('p-6 pt-0', className)}>{children}</div>;
 };
 
-export default Card;
+export default CustomCard;
