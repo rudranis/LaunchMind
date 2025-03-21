@@ -28,8 +28,8 @@ const TrendingStartups = () => {
       const response = await getTrendingStartupsAPI(industry);
 
       if (response.success && response.data) {
-        // Type assertion to ensure we're getting TrendingStartup[]
-        const startupData = response.data as unknown as TrendingStartup[];
+        // Ensure we're getting an array of TrendingStartup objects
+        const startupData = response.data as TrendingStartup[];
         setStartups(startupData);
 
         // Extract unique industries for filter

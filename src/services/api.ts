@@ -302,7 +302,27 @@ export async function getTrendingStartupsAPI(industry?: string[], limit: number 
     
     // If we have enough recent data, return it
     if (existingStartups && existingStartups.length >= 5) {
-      return { success: true, data: existingStartups };
+      // Map MongoDB documents to TrendingStartup objects
+      const startups: TrendingStartup[] = existingStartups.map(doc => ({
+        name: doc.name || '',
+        website: doc.website,
+        description: doc.description,
+        industry: Array.isArray(doc.industry) ? doc.industry : [],
+        fundingStage: doc.fundingStage,
+        totalFunding: doc.totalFunding,
+        lastFundingDate: doc.lastFundingDate ? new Date(doc.lastFundingDate) : undefined,
+        lastFundingAmount: doc.lastFundingAmount,
+        investors: doc.investors,
+        tractionMetrics: doc.tractionMetrics,
+        foundedYear: doc.foundedYear,
+        location: doc.location,
+        founders: doc.founders,
+        source: doc.source || 'Other',
+        scrapedDate: doc.scrapedDate ? new Date(doc.scrapedDate) : new Date(),
+        trendingScore: doc.trendingScore || 0
+      }));
+      
+      return { success: true, data: startups };
     }
     
     // Otherwise, fetch new data

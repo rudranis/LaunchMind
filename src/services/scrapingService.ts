@@ -1,5 +1,6 @@
 import { TrendingStartup, MarketTrend } from '@/models/MarketInsight';
 import { connectToDatabase } from '@/lib/mongodb';
+import { Document, WithId } from 'mongodb';
 
 // Mock data for trending startups (in a real app, this would use web scraping)
 const mockTrendingStartups: TrendingStartup[] = [
@@ -445,10 +446,29 @@ export const getTrendingStartups = async (industries?: string[], limit: number =
     
     // If we have enough results, return them
     if (dbStartups && dbStartups.length > 0) {
-      // Cast to ensure the correct return type
+      // Cast MongoDB documents to TrendingStartup objects
+      const startups: TrendingStartup[] = dbStartups.map(doc => ({
+        name: doc.name || '',
+        website: doc.website,
+        description: doc.description,
+        industry: Array.isArray(doc.industry) ? doc.industry : [],
+        fundingStage: doc.fundingStage,
+        totalFunding: doc.totalFunding,
+        lastFundingDate: doc.lastFundingDate ? new Date(doc.lastFundingDate) : undefined,
+        lastFundingAmount: doc.lastFundingAmount,
+        investors: doc.investors,
+        tractionMetrics: doc.tractionMetrics,
+        foundedYear: doc.foundedYear,
+        location: doc.location,
+        founders: doc.founders,
+        source: doc.source || 'Other',
+        scrapedDate: doc.scrapedDate ? new Date(doc.scrapedDate) : new Date(),
+        trendingScore: doc.trendingScore || 0
+      }));
+      
       return { 
         success: true, 
-        data: dbStartups as unknown as TrendingStartup[]
+        data: startups
       };
     }
     

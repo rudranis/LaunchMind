@@ -56,11 +56,11 @@ const Dashboard = () => {
         </TabsList>
         
         <TabsContent value="ideas" className="space-y-8">
-          <IdeaValidator isGuestMode={isGuestMode} />
+          <IdeaValidator />
         </TabsContent>
         
         <TabsContent value="investors" className="space-y-8">
-          <InvestorMatch isGuestMode={isGuestMode} />
+          <InvestorMatch />
         </TabsContent>
         
         <TabsContent value="market" className="space-y-8">
