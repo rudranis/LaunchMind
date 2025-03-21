@@ -1,348 +1,204 @@
 
 import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import CustomCard, { CardContent as CustomCardContent, CardHeader, CardTitle, CardDescription } from '../ui/CustomCard';
-import { TrendingUp, ExternalLink, Filter, BarChart3, Info } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getTrendingStartupsAPI } from '@/services/api';
 import { TrendingStartup } from '@/models/MarketInsight';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
-
-const formatCurrency = (amount: number) => {
-  if (amount >= 1000000000) {
-    return `$${(amount / 1000000000).toFixed(1)}B`;
-  } else if (amount >= 1000000) {
-    return `$${(amount / 1000000).toFixed(1)}M`;
-  } else if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}K`;
-  } else {
-    return `$${amount}`;
-  }
-};
-
-const StartupCard = ({ startup }: { startup: TrendingStartup }) => {
-  return (
-    <Card className="h-full hover:shadow-lg transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-medium mb-1">{startup.name}</h3>
-            <div className="flex items-center text-sm text-muted-foreground mb-2">
-              <span className="mr-2">{startup.location || 'Unknown location'}</span>
-              <span>•</span>
-              <span className="ml-2">Founded {startup.foundedYear || 'N/A'}</span>
-            </div>
-          </div>
-          <Badge variant="outline" className="bg-primary/5 text-primary">
-            {startup.trendingScore}% Trending
-          </Badge>
-        </div>
-        
-        <p className="text-sm mb-4 line-clamp-2">{startup.description || 'No description available'}</p>
-        
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-muted/50 p-3 rounded-md">
-            <div className="text-xs text-muted-foreground mb-1">Funding Stage</div>
-            <div className="font-medium">{startup.fundingStage || 'Unknown'}</div>
-          </div>
-          <div className="bg-muted/50 p-3 rounded-md">
-            <div className="text-xs text-muted-foreground mb-1">Total Funding</div>
-            <div className="font-medium">{startup.totalFunding ? formatCurrency(startup.totalFunding) : 'Unknown'}</div>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2 mb-4">
-          {startup.industry.map((ind, index) => (
-            <Badge key={index} variant="secondary" className="bg-secondary/50">
-              {ind}
-            </Badge>
-          ))}
-        </div>
-        
-        {startup.website && (
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center gap-2"
-            onClick={() => window.open(startup.website, '_blank')}
-          >
-            <ExternalLink size={16} />
-            <span>Visit Website</span>
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+import { ExternalLink, TrendingUp, Calendar, DollarSign, Users, Building, Award } from 'lucide-react';
 
 const TrendingStartups = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [startups, setStartups] = useState<TrendingStartup[]>([]);
-  const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
-  const [dataSource, setDataSource] = useState<string>('All Sources');
-  const { toast } = useToast();
-  
-  const industries = ['AI', 'FinTech', 'HealthTech', 'SaaS', 'CleanTech', 'EdTech'];
-  const dataSources = ['All Sources', 'Crunchbase', 'AngelList', 'ProductHunt', 'TechCrunch'];
-  
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
+  const [industries, setIndustries] = useState<string[]>([]);
+
   useEffect(() => {
-    const fetchTrendingStartups = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Apply industry filter if not "all"
-        const industryFilter = selectedIndustry !== 'all' ? [selectedIndustry] : undefined;
-        
-        // Fetch trending startups
-        const result = await getTrendingStartupsAPI(industryFilter);
-        
-        if (result.success && result.data) {
-          // Apply data source filter if needed
-          let filteredStartups = result.data;
-          if (dataSource !== 'All Sources') {
-            filteredStartups = filteredStartups.filter(
-              startup => startup.source === dataSource
-            );
-          }
-          
-          setStartups(filteredStartups);
-        } else {
-          console.error('Failed to load trending startups:', result.error);
-          toast({
-            title: 'Error',
-            description: 'Failed to load trending startups data',
-            variant: 'destructive'
-          });
-          setStartups([]);
-        }
-      } catch (error) {
-        console.error('Error fetching trending startups:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load trending startups data',
-          variant: 'destructive'
-        });
-        setStartups([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     fetchTrendingStartups();
-  }, [selectedIndustry, dataSource, toast]);
-  
+  }, [selectedIndustry]);
+
+  const fetchTrendingStartups = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const industry = selectedIndustry ? [selectedIndustry] : undefined;
+      const response = await getTrendingStartupsAPI(industry);
+
+      if (response.success && response.data) {
+        // Type assertion to ensure we're getting TrendingStartup[]
+        const startupData = response.data as unknown as TrendingStartup[];
+        setStartups(startupData);
+
+        // Extract unique industries for filter
+        const uniqueIndustries = new Set<string>();
+        startupData.forEach(startup => {
+          startup.industry.forEach(ind => uniqueIndustries.add(ind));
+        });
+        setIndustries(Array.from(uniqueIndustries));
+      } else {
+        setError('Failed to fetch trending startups');
+      }
+    } catch (err) {
+      console.error('Error fetching trending startups:', err);
+      setError('An error occurred while fetching trending startups');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString?: Date) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const formatFunding = (amount?: number) => {
+    if (amount == null) return 'Undisclosed';
+    if (amount >= 1_000_000) {
+      return `$${(amount / 1_000_000).toFixed(1)}M`;
+    }
+    if (amount >= 1_000) {
+      return `$${(amount / 1_000).toFixed(0)}K`;
+    }
+    return `$${amount}`;
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold flex items-center">
-        <TrendingUp className="w-6 h-6 mr-2 text-primary" />
-        Trending Startups
-      </h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Trending Startups</h2>
+          <p className="text-muted-foreground">
+            Discover the hottest startups based on recent funding, traction, and industry buzz.
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedIndustry === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedIndustry(null)}
+          >
+            All Industries
+          </Button>
+          {industries.slice(0, 5).map((industry) => (
+            <Button
+              key={industry}
+              variant={selectedIndustry === industry ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedIndustry(industry)}
+            >
+              {industry}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 p-4 rounded-md text-red-800 border border-red-200">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          // Skeleton loading state
+          Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          startups.map((startup) => (
+            <Card key={startup.name} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="font-bold text-lg">{startup.name}</CardTitle>
+                    <CardDescription>{startup.description || 'Innovative startup solution'}</CardDescription>
+                  </div>
+                  {startup.trendingScore >= 80 && (
+                    <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Hot
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Building className="h-3.5 w-3.5" />
+                      <span>{startup.foundedYear || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>{startup.location || 'Global'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      <span>{formatFunding(startup.totalFunding)}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>{formatDate(startup.lastFundingDate)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {startup.industry.slice(0, 3).map((ind) => (
+                      <Badge key={ind} variant="outline" className="bg-gray-50">
+                        {ind}
+                      </Badge>
+                    ))}
+                    {startup.fundingStage && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {startup.fundingStage}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {startup.website && (
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <a href={startup.website} target="_blank" rel="noopener noreferrer">
+                        Visit Website
+                        <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
       
-      <CustomCard>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Latest Trending Startups</CardTitle>
-              <CardDescription>
-                AI-curated list of startups gaining momentum across different industries
-              </CardDescription>
-            </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Info size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p>Data scraped from Crunchbase, AngelList, ProductHunt, and TechCrunch. 
-                  Updated daily with AI-powered analysis of funding trends, growth metrics, and market signals.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </CardHeader>
-        <CustomCardContent>
-          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Filter size={18} className="text-gray-500" />
-              <select
-                className="bg-transparent border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                value={selectedIndustry}
-                onChange={(e) => setSelectedIndustry(e.target.value)}
-              >
-                <option value="all">All Industries</option>
-                {industries.map((industry) => (
-                  <option key={industry} value={industry}>{industry}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <BarChart3 size={18} className="text-gray-500" />
-              <select
-                className="bg-transparent border border-gray-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                value={dataSource}
-                onChange={(e) => setDataSource(e.target.value)}
-              >
-                {dataSources.map((source) => (
-                  <option key={source} value={source}>{source}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          
-          <Tabs defaultValue="grid">
-            <TabsList className="mb-6">
-              <TabsTrigger value="grid">Grid View</TabsTrigger>
-              <TabsTrigger value="list">List View</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="grid" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                  Array(6).fill(0).map((_, i) => (
-                    <Card key={i}>
-                      <CardContent className="p-6">
-                        <div className="space-y-3">
-                          <Skeleton className="h-5 w-3/4" />
-                          <Skeleton className="h-4 w-1/3" />
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-4 w-full" />
-                          <div className="grid grid-cols-2 gap-4 py-2">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
-                          </div>
-                          <div className="flex gap-2 py-2">
-                            <Skeleton className="h-6 w-16 rounded-full" />
-                            <Skeleton className="h-6 w-16 rounded-full" />
-                          </div>
-                          <Skeleton className="h-9 w-full rounded" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : startups.length > 0 ? (
-                  startups.map((startup, index) => (
-                    <StartupCard key={index} startup={startup} />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12">
-                    <p className="text-lg text-muted-foreground">No startups found matching your filters</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setSelectedIndustry('all');
-                        setDataSource('All Sources');
-                      }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="list" className="mt-0">
-              <div className="space-y-4">
-                {isLoading ? (
-                  Array(8).fill(0).map((_, i) => (
-                    <Card key={i}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between">
-                          <div className="space-y-2 flex-1">
-                            <Skeleton className="h-5 w-1/4" />
-                            <Skeleton className="h-4 w-1/3" />
-                            <Skeleton className="h-4 w-2/3" />
-                          </div>
-                          <div className="flex items-start gap-4">
-                            <Skeleton className="h-10 w-24" />
-                            <Skeleton className="h-10 w-24" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : startups.length > 0 ? (
-                  startups.map((startup, index) => (
-                    <Card key={index} className="hover:shadow-md transition-all duration-300">
-                      <CardContent className="p-4">
-                        <div className="flex flex-col sm:flex-row justify-between gap-4">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{startup.name}</h3>
-                              <Badge variant="outline" className="bg-primary/5 text-primary">
-                                {startup.trendingScore}%
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {startup.location || 'Unknown location'} • Founded {startup.foundedYear || 'N/A'}
-                            </p>
-                            <p className="text-sm mt-1 line-clamp-1">
-                              {startup.description || 'No description available'}
-                            </p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {startup.industry.slice(0, 3).map((ind, i) => (
-                                <Badge key={i} variant="secondary" className="bg-secondary/50">
-                                  {ind}
-                                </Badge>
-                              ))}
-                              {startup.industry.length > 3 && (
-                                <Badge variant="outline">+{startup.industry.length - 3}</Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <div className="text-center">
-                              <div className="text-xs text-muted-foreground">Stage</div>
-                              <div className="font-medium">{startup.fundingStage || 'Unknown'}</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-xs text-muted-foreground">Funding</div>
-                              <div className="font-medium">
-                                {startup.totalFunding ? formatCurrency(startup.totalFunding) : 'Unknown'}
-                              </div>
-                            </div>
-                            {startup.website && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="h-9 gap-1"
-                                onClick={() => window.open(startup.website, '_blank')}
-                              >
-                                <ExternalLink size={14} />
-                                <span className="hidden sm:inline">Website</span>
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-lg text-muted-foreground">No startups found matching your filters</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setSelectedIndustry('all');
-                        setDataSource('All Sources');
-                      }}
-                    >
-                      Reset Filters
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CustomCardContent>
-      </CustomCard>
+      {startups.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <Award className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-4 text-lg font-medium">No trending startups found</h3>
+          <p className="mt-2 text-muted-foreground">
+            Try changing your industry filter or check back later for updates.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

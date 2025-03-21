@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -17,6 +17,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +29,21 @@ const Navbar = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleGetStarted = () => {
+    // Add localStorage flag to indicate guest mode
+    localStorage.setItem('guestMode', 'true');
+    
+    // Navigate to dashboard with animation class
+    document.body.classList.add('page-transition');
+    setTimeout(() => {
+      navigate('/dashboard');
+      // Remove animation class after navigation
+      setTimeout(() => {
+        document.body.classList.remove('page-transition');
+      }, 500);
+    }, 300);
+  };
 
   return (
     <header
@@ -79,14 +95,13 @@ const Navbar = () => {
                 Sign In
               </Button>
             </Link>
-            <Link to="/auth?register=true">
-              <Button
-                className="rounded-full bg-primary text-white hover:bg-primary/90 transition-all duration-300"
-              >
-                Get Started
-                <ChevronRight size={16} className="ml-2" />
-              </Button>
-            </Link>
+            <Button
+              onClick={handleGetStarted}
+              className="rounded-full bg-primary text-white hover:bg-primary/90 transition-all duration-300"
+            >
+              Get Started
+              <ChevronRight size={16} className="ml-2" />
+            </Button>
           </div>
         </nav>
 
@@ -160,13 +175,15 @@ const Navbar = () => {
                 Sign In
               </Button>
             </Link>
-            <Link to="/auth?register=true" onClick={() => setMobileMenuOpen(false)}>
-              <Button
-                className="w-full justify-center"
-              >
-                Get Started
-              </Button>
-            </Link>
+            <Button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleGetStarted();
+              }}
+              className="w-full justify-center"
+            >
+              Get Started
+            </Button>
           </div>
         </div>
       </div>

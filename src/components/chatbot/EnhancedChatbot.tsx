@@ -19,53 +19,23 @@ import {
   MicOff,
   Settings,
   BarChart3,
-  BookOpen
+  BookOpen,
+  VolumeX,
+  Volume2,
+  AlertCircle,
+  Lock
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { getChatHistory, saveChatHistory } from '@/services/api';
+import { generateAIResponse, generateTextToSpeech, createTypingEffect, OpenAIMessage } from '@/services/openaiService';
 import { v4 as uuidv4 } from 'uuid';
-
-// Enhanced responses based on specialized categories
-const RESPONSES = {
-  ideaValidation: [
-    "Based on market analysis of similar startups, your idea shows strong potential with a 78% market-fit score. Consider these improvements: 1) Focus on customer acquisition strategy, 2) Develop a clear monetization model, 3) Identify key strategic partnerships early.",
-    "I've analyzed your startup idea against current market trends. It shows excellent potential in addressing an underserved market segment. Key strengths: innovative approach, scalable model. Suggested improvements: strengthen IP protection strategy, expand initial target market.",
-    "Market analysis indicates your concept addresses a growing pain point. SWOT Analysis - Strengths: Unique solution, scalable model. Weaknesses: High customer acquisition costs. Opportunities: Expanding market in Asia-Pacific region. Threats: Potential for established competitors to pivot."
-  ],
-  investorMatching: [
-    "Based on your startup profile in AI healthcare, I recommend approaching these investors: 1) Sarah Johnson at Horizon Health Ventures (avg investment $1-3M), 2) BlueCross Innovation Fund, 3) AI Catalyst Partners. Customize your pitch to emphasize market validation and regulatory compliance.",
-    "For your fintech solution focusing on SMB payments, these investors would be ideal matches: 1) FinTech Growth Fund (average investment $2-5M), 2) Maria Chen at PayTech Ventures (focuses on B2B payment solutions), 3) Digital Payments Accelerator program (application deadline in 30 days).",
-    "Your clean energy startup would appeal to: 1) GreenTech Partners ($3-8M investment range), 2) Sustainable Future Fund (specifically seeking solar innovations), 3) Climate Solutions Accelerator (offers $250K seed funding plus mentorship). Emphasize your proprietary technology and carbon reduction metrics."
-  ],
-  marketTrends: [
-    "Latest market analysis shows 3 emerging trends in your industry: 1) Shift toward subscription-based models (+43% YoY growth), 2) Integration of AI for personalization (adopted by 67% of market leaders), 3) Increasing focus on sustainability metrics. Consider aligning your roadmap accordingly.",
-    "Recent data indicates these market shifts in your sector: 1) Consolidation among smaller players (8 acquisitions in Q2), 2) Growing demand for embedded financial services (58% CAGR), 3) Regulatory changes favoring startups with transparent data practices. Your positioning aligns well with trends #1 and #3.",
-    "Industry analysis reveals: 1) Supply chain optimization solutions seeing 37% growth, 2) Rising customer acquisition costs (+22% YoY), 3) Shift toward hybrid service models combining automation with human expertise. Consider emphasizing your solution's supply chain efficiencies."
-  ],
-  pitchDeck: [
-    "Analyzing successful pitch decks in your industry reveals these critical elements: 1) Lead with market pain point validation (data-backed), 2) Demonstrate early traction metrics prominently on slide 3, 3) Include clear competitor differentiation matrix, 4) Detail customer acquisition strategy with CAC/LTV projections.",
-    "For your SaaS pitch deck, focus on: 1) Problem statement with specific market size ($4.3B TAM), 2) Solution with clear value proposition, 3) Business model highlighting recurring revenue, 4) Traction with logos/testimonials, 5) Team slide emphasizing domain expertise, 6) Clear ask with funding allocation.",
-    "Your hardware startup pitch should emphasize: 1) Proprietary technology with patent status, 2) Manufacturing scalability plan, 3) Unit economics breakdown, 4) Go-to-market strategy with initial customer targets, 5) Team's technical expertise, 6) Funding needs with clear milestones tied to capital deployment."
-  ],
-  legalCompliance: [
-    "For your startup in the US, key legal considerations include: 1) Delaware C-Corp formation recommended for investor appeal, 2) Standard founder vesting schedule (4 years with 1-year cliff), 3) IP assignment agreements for all team members, 4) Privacy policy compliance with CCPA if targeting California users.",
-    "EU startup legal requirements include: 1) GDPR compliance for data collection, 2) Standard contractual clauses for international data transfers, 3) Local corporate entity in at least one EU member state, 4) VAT registration if exceeding country-specific thresholds. Templates for policies available.",
-    "For fintech startups, regulatory requirements include: 1) Money transmitter licenses in operating states, 2) KYC/AML compliance program, 3) Data security certifications (SOC 2 recommended), 4) Consumer lending licenses if offering credit. Budget 8-12 months for regulatory approvals."
-  ],
-  fundingOpportunities: [
-    "Current grant opportunities for your sector: 1) NSF SBIR Phase I ($275K, deadline in 60 days), 2) Clean Energy Business Incubator Program (non-dilutive $50K + resources), 3) Climate Tech Accelerator (application opens next month, $100K investment for 5% equity).",
-    "Funding options for your AI healthcare solution: 1) NIH Small Business Innovation Research grants (up to $325K, deadline next quarter), 2) Impact Ventures Healthcare Fund (seeking Series A investments $2-5M), 3) MedTech Accelerator program (applications close in 45 days).",
-    "Relevant funding sources for your edtech startup: 1) EdSurge Innovation Fund (non-dilutive $75K, application deadline in 30 days), 2) Learn Capital (seeking early-stage investments $1-3M), 3) GSV Acceleration Program (8-week program + $100K investment, rolling applications)."
-  ],
-  trendingStartups: [
-    "Based on our real-time data scraping, these startups in your industry are showing exceptional traction: 1) NeuralLens AI (Computer vision, $8.5M Series A), 2) FinanceFlow (Financial forecasting, $3.2M Seed), 3) MediSync (Remote patient monitoring, $12M Series A). Consider analyzing their growth strategies for insights.",
-    "Latest trending startups in your sector: 1) ClimateOS (Carbon tracking platform, $15M Series A), 2) SupplyMind (Supply chain optimization, $7.2M Seed), 3) EdTechPro (Personalized learning, $5.3M Seed). Key pattern: All three have strong AI components and subscription revenue models.",
-    "Our web scraping identified these fast-growing startups to watch: 1) Quantum Commerce (AI-powered e-commerce, $22M Series A), 2) CyberShield (Zero-trust security, $18M Series A), 3) DataEthics (Privacy-focused analytics, $4.7M Seed). All show strong product-led growth strategies worth examining."
-  ]
-};
 
 interface Message {
   id: string;
@@ -73,6 +43,8 @@ interface Message {
   sender: 'user' | 'bot';
   timestamp: Date;
   category?: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' | 'legalCompliance' | 'fundingOpportunities' | 'trendingStartups';
+  isTyping?: boolean;
+  audioUrl?: string;
 }
 
 interface EnhancedChatbotProps {
@@ -88,9 +60,16 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>('');
-  const [aiModel, setAiModel] = useState<string>('gemini');
+  const [aiModel, setAiModel] = useState<string>('gpt4o');
   const [isListening, setIsListening] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [openaiKey, setOpenaiKey] = useState<string>('');
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [audioVolume, setAudioVolume] = useState(80);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [showApiKeyAlert, setShowApiKeyAlert] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const speechRecognition = useRef<SpeechRecognition | null>(null);
   const { toast } = useToast();
@@ -102,6 +81,10 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
 
   // Initialize session ID and load chat history
   useEffect(() => {
+    // Check if user is in guest mode
+    const guestMode = localStorage.getItem('guestMode') === 'true';
+    setIsGuestMode(guestMode);
+    
     // Get or create session ID from localStorage
     let storedSessionId = localStorage.getItem('chatSessionId');
     if (!storedSessionId) {
@@ -109,6 +92,14 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       localStorage.setItem('chatSessionId', storedSessionId);
     }
     setSessionId(storedSessionId);
+
+    // Check if OpenAI API key is stored
+    const storedApiKey = localStorage.getItem('openai_api_key');
+    if (storedApiKey) {
+      setOpenaiKey(storedApiKey);
+    } else {
+      setShowApiKeyAlert(true);
+    }
 
     // Load chat history for this session
     const loadChatHistory = async () => {
@@ -120,7 +111,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
           // If no history or error, set initial greeting
           setMessages([{
             id: '1',
-            text: "Hello! I'm your AI startup assistant powered by Gemini AI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
+            text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
             sender: 'bot',
             timestamp: new Date(),
           }]);
@@ -130,7 +121,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
         // Set initial greeting if error
         setMessages([{
           id: '1',
-          text: "Hello! I'm your AI startup assistant powered by Gemini AI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
+          text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
           sender: 'bot',
           timestamp: new Date(),
         }]);
@@ -140,13 +131,28 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     if (isOpen) {
       loadChatHistory();
     }
+
+    // Check for audio preferences
+    const speechEnabled = localStorage.getItem('speech_enabled') === 'true';
+    setIsSpeechEnabled(speechEnabled);
+    
+    const storedVolume = localStorage.getItem('audio_volume');
+    if (storedVolume) {
+      setAudioVolume(parseInt(storedVolume, 10));
+    }
   }, [isOpen]);
 
   // Save messages to database when they change
   useEffect(() => {
     const saveMessages = async () => {
       if (sessionId && messages.length > 0) {
-        await saveChatHistory(sessionId, messages);
+        // Remove typing indicators and other temporary properties
+        const cleanMessages = messages.map(msg => ({
+          ...msg,
+          isTyping: undefined,
+          audioUrl: undefined
+        }));
+        await saveChatHistory(sessionId, cleanMessages);
       }
     };
 
@@ -161,7 +167,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     if (isOpen && messages.length === 0) {
       setMessages([{
         id: '1',
-        text: "Hello! I'm your AI startup assistant powered by Gemini AI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
+        text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
         sender: 'bot',
         timestamp: new Date(),
       }]);
@@ -200,8 +206,34 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       if (speechRecognition.current) {
         speechRecognition.current.stop();
       }
+      // Clean up any playing audio
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.remove();
+      }
     };
   }, [toast]);
+
+  // Handle OpenAI API key changes
+  useEffect(() => {
+    if (openaiKey) {
+      localStorage.setItem('openai_api_key', openaiKey);
+      setShowApiKeyAlert(false);
+    }
+  }, [openaiKey]);
+
+  // Handle audio volume changes
+  useEffect(() => {
+    localStorage.setItem('audio_volume', audioVolume.toString());
+    if (currentAudio) {
+      currentAudio.volume = audioVolume / 100;
+    }
+  }, [audioVolume, currentAudio]);
+
+  // Handle speech enabled changes
+  useEffect(() => {
+    localStorage.setItem('speech_enabled', isSpeechEnabled.toString());
+  }, [isSpeechEnabled]);
 
   const toggleListening = () => {
     if (!speechRecognition.current) {
@@ -226,13 +258,100 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
   };
 
-  const handleSendMessage = () => {
+  const determineMessageCategory = (message: string): 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' | 'legalCompliance' | 'fundingOpportunities' | 'trendingStartups' => {
+    const lowerCaseMessage = message.toLowerCase();
+    
+    if (lowerCaseMessage.includes('investor') || lowerCaseMessage.includes('funding') || 
+        lowerCaseMessage.includes('vc') || lowerCaseMessage.includes('venture capital')) {
+      return 'investorMatching';
+    } else if (lowerCaseMessage.includes('market') || lowerCaseMessage.includes('trend') || 
+               lowerCaseMessage.includes('industry') || lowerCaseMessage.includes('competition')) {
+      return 'marketTrends';
+    } else if (lowerCaseMessage.includes('pitch') || lowerCaseMessage.includes('deck') || 
+               lowerCaseMessage.includes('presentation') || lowerCaseMessage.includes('slide')) {
+      return 'pitchDeck';
+    } else if (lowerCaseMessage.includes('legal') || lowerCaseMessage.includes('compliance') || 
+               lowerCaseMessage.includes('regulation') || lowerCaseMessage.includes('law')) {
+      return 'legalCompliance';
+    } else if (lowerCaseMessage.includes('grant') || lowerCaseMessage.includes('opportunity') || 
+               lowerCaseMessage.includes('accelerator') || lowerCaseMessage.includes('incubator')) {
+      return 'fundingOpportunities';
+    } else if (lowerCaseMessage.includes('trending') || lowerCaseMessage.includes('popular') || 
+               lowerCaseMessage.includes('top startups') || lowerCaseMessage.includes('successful startups')) {
+      return 'trendingStartups';
+    }
+    
+    return 'ideaValidation'; // Default category
+  };
+
+  const playTextToSpeech = async (text: string) => {
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.remove();
+    }
+    
+    if (!isSpeechEnabled || !openaiKey) return;
+    
+    try {
+      // Generate speech using OpenAI API
+      const result = await generateTextToSpeech(text, openaiKey);
+      
+      if (result.success && result.audioUrl) {
+        const audio = new Audio(result.audioUrl);
+        audio.volume = audioVolume / 100;
+        setCurrentAudio(audio);
+        
+        audio.onended = () => {
+          setCurrentAudio(null);
+        };
+        
+        audio.play().catch(error => {
+          console.error('Error playing audio:', error);
+          toast({
+            title: 'Audio Playback Error',
+            description: 'Failed to play the generated speech.',
+            variant: 'destructive'
+          });
+        });
+        
+        // Return the audio URL to update the message
+        return result.audioUrl;
+      } else {
+        console.error('TTS error:', result.error);
+        if (result.error) {
+          toast({
+            title: 'Text-to-Speech Error',
+            description: result.error,
+            variant: 'destructive'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error generating or playing speech:', error);
+    }
+    
+    return undefined;
+  };
+
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
 
     // Stop voice recognition if active
     if (isListening && speechRecognition.current) {
       speechRecognition.current.stop();
       setIsListening(false);
+    }
+
+    // Check for OpenAI API key
+    if (!openaiKey) {
+      setShowApiKeyAlert(true);
+      toast({
+        title: 'API Key Required',
+        description: 'Please enter your OpenAI API key in settings to continue.',
+        variant: 'destructive'
+      });
+      return;
     }
 
     // Add user message
@@ -248,46 +367,191 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     setIsLoading(true);
 
     // Determine message category based on keywords and context
-    let category: 'ideaValidation' | 'investorMatching' | 'marketTrends' | 'pitchDeck' | 'legalCompliance' | 'fundingOpportunities' | 'trendingStartups' = 'ideaValidation';
+    const category = determineMessageCategory(message);
     
-    const lowerCaseMessage = message.toLowerCase();
+    // Track if guest mode limits apply
+    const isPremiumFeature = category === 'investorMatching' || 
+                            category === 'pitchDeck' || 
+                            category === 'legalCompliance';
     
-    if (lowerCaseMessage.includes('investor') || lowerCaseMessage.includes('funding') || lowerCaseMessage.includes('vc') || lowerCaseMessage.includes('venture capital')) {
-      category = 'investorMatching';
-    } else if (lowerCaseMessage.includes('market') || lowerCaseMessage.includes('trend') || lowerCaseMessage.includes('industry') || lowerCaseMessage.includes('competition')) {
-      category = 'marketTrends';
-    } else if (lowerCaseMessage.includes('pitch') || lowerCaseMessage.includes('deck') || lowerCaseMessage.includes('presentation') || lowerCaseMessage.includes('slide')) {
-      category = 'pitchDeck';
-    } else if (lowerCaseMessage.includes('legal') || lowerCaseMessage.includes('compliance') || lowerCaseMessage.includes('regulation') || lowerCaseMessage.includes('law')) {
-      category = 'legalCompliance';
-    } else if (lowerCaseMessage.includes('grant') || lowerCaseMessage.includes('opportunity') || lowerCaseMessage.includes('accelerator') || lowerCaseMessage.includes('incubator')) {
-      category = 'fundingOpportunities';
-    } else if (lowerCaseMessage.includes('trending') || lowerCaseMessage.includes('popular') || lowerCaseMessage.includes('top startups') || lowerCaseMessage.includes('successful startups')) {
-      category = 'trendingStartups';
-    }
-
-    // Simulate AI processing delay (in a real app, this would call the Gemini API)
-    setTimeout(() => {
-      // Get random response from the category
-      const responses = RESPONSES[category];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      
-      const botMessage: Message = {
+    if (isPremiumFeature && isGuestMode) {
+      // Add a bot message explaining the limitation
+      const limitMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: randomResponse,
+        text: "I'm sorry, but this feature is only available to signed-in users. Please sign in to access premium features like investor matching, pitch deck creation, and legal compliance analysis.",
+        sender: 'bot',
+        timestamp: new Date(),
+        category: 'ideaValidation', // Use a basic category
+      };
+      
+      setMessages(prev => [...prev, limitMessage]);
+      setIsLoading(false);
+      
+      // Generate speech for the limitation message
+      if (isSpeechEnabled) {
+        const audioUrl = await playTextToSpeech(limitMessage.text);
+        if (audioUrl) {
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === limitMessage.id ? { ...msg, audioUrl } : msg
+            )
+          );
+        }
+      }
+      
+      return;
+    }
+    
+    try {
+      // Prepare messages for OpenAI
+      const systemPrompt = getSystemPromptForCategory(category);
+      const apiMessages: OpenAIMessage[] = [
+        { role: 'system', content: systemPrompt },
+      ];
+      
+      // Add conversation history (max 5 most recent messages)
+      const recentMessages = messages.slice(-5);
+      recentMessages.forEach(msg => {
+        apiMessages.push({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        });
+      });
+      
+      // Add the current user message
+      apiMessages.push({ role: 'user', content: message });
+      
+      // Add a temporary bot message with typing indicator
+      const tempBotMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: '',
+        sender: 'bot',
+        timestamp: new Date(),
+        category,
+        isTyping: true,
+      };
+      
+      setMessages(prev => [...prev, tempBotMessage]);
+      
+      // Call OpenAI API
+      const result = await generateAIResponse(
+        apiMessages,
+        openaiKey,
+        aiModel === 'gpt4o' ? 'gpt-4o' : 'gpt-4o-mini'
+      );
+      
+      if (result.success && result.data) {
+        // Prepare the final bot message
+        const finalBotMessage: Message = {
+          ...tempBotMessage,
+          text: result.data,
+          isTyping: false,
+        };
+        
+        // Apply typing effect
+        const typingEffect = createTypingEffect(
+          result.data,
+          (text) => {
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === tempBotMessage.id ? { ...msg, text, isTyping: text.length < result.data!.length } : msg
+              )
+            );
+          },
+          15 // typing speed in ms
+        );
+        
+        // Start typing effect
+        typingEffect.start();
+        
+        // Generate text-to-speech
+        if (isSpeechEnabled) {
+          const audioUrl = await playTextToSpeech(result.data);
+          if (audioUrl) {
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === tempBotMessage.id ? { ...msg, audioUrl } : msg
+              )
+            );
+          }
+        }
+        
+        toast({
+          title: `${aiModel === 'gpt4o' ? 'GPT-4o' : 'GPT-4o Mini'} Analysis Complete`,
+          description: `AI has analyzed your ${getCategoryLabel(category).toLowerCase()} query`,
+        });
+      } else {
+        // Handle API error
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempBotMessage.id 
+              ? { 
+                  ...msg, 
+                  text: `I'm sorry, I encountered an error: ${result.error || 'Unknown error'}. Please try again.`, 
+                  isTyping: false 
+                } 
+              : msg
+          )
+        );
+        
+        toast({
+          title: 'AI Response Error',
+          description: result.error || 'Failed to generate AI response',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        text: `I'm sorry, an error occurred: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
         sender: 'bot',
         timestamp: new Date(),
         category,
       };
       
-      setMessages(prev => [...prev, botMessage]);
-      setIsLoading(false);
+      setMessages(prev => [...prev, errorMessage]);
       
       toast({
-        title: `${aiModel === 'gemini' ? 'Gemini' : 'GPT-4'} Analysis Complete`,
-        description: `AI has analyzed your ${getCategoryLabel(category).toLowerCase()} query`,
+        title: 'Error',
+        description: 'Failed to process your message',
+        variant: 'destructive'
       });
-    }, 2000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getSystemPromptForCategory = (category: string): string => {
+    const basePrompt = "You are an AI assistant specialized in startup advice. ";
+    
+    switch (category) {
+      case 'ideaValidation':
+        return `${basePrompt}You're analyzing startup ideas for market fit, innovation, and feasibility. Provide detailed feedback on strengths, weaknesses, and potential. Include numeric scores for market potential (0-100), innovation (0-100), and feasibility (0-100).`;
+      
+      case 'investorMatching':
+        return `${basePrompt}You're matching startups with potential investors. Suggest specific investor types, firms, or individuals who might be interested based on industry, stage, and business model. Provide advice on pitching to these investors.`;
+      
+      case 'marketTrends':
+        return `${basePrompt}You're analyzing current market trends relevant to startups. Identify growing sectors, emerging technologies, and shifts in consumer behavior or business models. Support your insights with recent data points when possible.`;
+      
+      case 'pitchDeck':
+        return `${basePrompt}You're helping startups create or improve their pitch decks. Provide specific advice on structure, storytelling, key slides, and data presentation. Focus on what investors want to see.`;
+      
+      case 'legalCompliance':
+        return `${basePrompt}You're advising on legal and regulatory considerations for startups. Cover entity formation, IP protection, regulatory requirements, and compliance best practices. Be specific to the startup's context when possible.`;
+      
+      case 'fundingOpportunities':
+        return `${basePrompt}You're identifying funding opportunities for startups. Suggest relevant grants, accelerators, incubators, angel networks, or VC firms. Include application deadlines or requirements when known.`;
+      
+      case 'trendingStartups':
+        return `${basePrompt}You're analyzing trending startups and what makes them successful. Identify patterns in fast-growing startups, their business models, go-to-market strategies, and funding approaches. Extract lessons for other founders.`;
+      
+      default:
+        return `${basePrompt}Provide helpful, accurate, and detailed advice to startup founders and entrepreneurs.`;
+    }
   };
 
   const getCategoryLabel = (category: string | undefined) => {
@@ -353,6 +617,28 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     ? messages.filter(msg => msg.category === selectedCategory || msg.sender === 'user')
     : messages;
 
+  const playMessageAudio = (message: Message) => {
+    if (!message.audioUrl) return;
+    
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.remove();
+    }
+    
+    const audio = new Audio(message.audioUrl);
+    audio.volume = audioVolume / 100;
+    setCurrentAudio(audio);
+    
+    audio.onended = () => {
+      setCurrentAudio(null);
+    };
+    
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+    });
+  };
+
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
@@ -392,7 +678,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               </AvatarFallback>
             </Avatar>
             <CardTitle className="text-base flex items-center">
-              {aiModel === 'gemini' ? 'Gemini' : 'GPT-4'} AI Startup Assistant
+              {aiModel === 'gpt4o' ? 'GPT-4o' : 'GPT-4o Mini'} Startup Assistant
             </CardTitle>
           </div>
           <div className="flex items-center space-x-1">
@@ -423,10 +709,31 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
           </div>
         </CardHeader>
         
+        {showApiKeyAlert && (
+          <Alert className="m-4 bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertDescription className="text-amber-700 text-xs">
+              Please enter your OpenAI API key in settings to enable AI responses.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {isSettingsOpen && (
           <div className="px-4 py-3 border-b">
             <h3 className="text-sm font-medium mb-2">Settings</h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">OpenAI API Key</label>
+                <Input
+                  type="password"
+                  value={openaiKey}
+                  onChange={(e) => setOpenaiKey(e.target.value)}
+                  placeholder="Enter your OpenAI API key"
+                  className="text-xs"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Your API key is stored locally in your browser.</p>
+              </div>
+              
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">AI Model</label>
                 <Select value={aiModel} onValueChange={setAiModel}>
@@ -434,11 +741,48 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
                     <SelectValue placeholder="Select AI Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gemini">Gemini Pro</SelectItem>
-                    <SelectItem value="gpt4">GPT-4</SelectItem>
+                    <SelectItem value="gpt4o">GPT-4o (More powerful)</SelectItem>
+                    <SelectItem value="gpt4o-mini">GPT-4o Mini (Faster)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="voice-toggle" className="text-xs text-muted-foreground">
+                    Text-to-Speech
+                  </Label>
+                  <span className="text-xs text-muted-foreground">
+                    Hear AI responses
+                  </span>
+                </div>
+                <Switch
+                  id="voice-toggle"
+                  checked={isSpeechEnabled}
+                  onCheckedChange={setIsSpeechEnabled}
+                />
+              </div>
+              
+              {isSpeechEnabled && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs text-muted-foreground">Volume</label>
+                    <span className="text-xs text-muted-foreground">{audioVolume}%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <VolumeX size={16} className="text-muted-foreground" />
+                    <Slider
+                      value={[audioVolume]}
+                      min={0}
+                      max={100}
+                      step={5}
+                      onValueChange={([value]) => setAudioVolume(value)}
+                      className="flex-1"
+                    />
+                    <Volume2 size={16} className="text-muted-foreground" />
+                  </div>
+                </div>
+              )}
               
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Chat History</label>
@@ -524,16 +868,38 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
                     : 'bg-muted'
                 }`}
               >
-                <div className="flex items-center">
+                <div className="flex items-center justify-between">
                   {msg.sender === 'bot' && (
                     <div className="flex items-center">
-                      <span className="text-xs font-semibold mr-1">{aiModel === 'gemini' ? 'Gemini' : 'GPT-4'}:</span>
+                      <span className="text-xs font-semibold mr-1">{aiModel === 'gpt4o' ? 'GPT-4o' : 'GPT-4o Mini'}:</span>
                       {getCategoryIcon(msg.category)}
                       {getCategoryBadge(msg.category)}
                     </div>
                   )}
+                  
+                  {msg.sender === 'bot' && msg.audioUrl && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 ml-2 -mr-2 opacity-70 hover:opacity-100"
+                      onClick={() => playMessageAudio(msg)}
+                    >
+                      <Volume2 size={14} />
+                    </Button>
+                  )}
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                
+                <p className="text-sm whitespace-pre-wrap">
+                  {msg.isTyping ? (
+                    <>
+                      {msg.text}
+                      <span className="inline-block w-1.5 h-3 ml-1 bg-current rounded-full opacity-75 animate-pulse"></span>
+                    </>
+                  ) : (
+                    msg.text
+                  )}
+                </p>
+                
                 <div className="flex justify-end mt-1">
                   <span className="text-xs opacity-70">
                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -542,14 +908,14 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               </div>
             </div>
           ))}
-          {isLoading && (
+          {isLoading && !messages.some(m => m.isTyping) && (
             <div className="flex justify-start">
               <div className="bg-muted max-w-[80%] rounded-lg px-4 py-2">
                 <div className="flex space-x-2 items-center">
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-300"></div>
-                  <span className="text-xs ml-1">{aiModel === 'gemini' ? 'Gemini' : 'GPT-4'} analyzing...</span>
+                  <span className="text-xs ml-1">{aiModel === 'gpt4o' ? 'GPT-4o' : 'GPT-4o Mini'} thinking...</span>
                 </div>
               </div>
             </div>
@@ -570,6 +936,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ask about startup ideas, investors, market trends..."
               className="flex-grow"
+              disabled={isLoading || (!openaiKey && !showApiKeyAlert)}
             />
             <Button 
               type="button" 
@@ -577,13 +944,26 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               variant={isListening ? "default" : "outline"}
               onClick={toggleListening}
               className={isListening ? "bg-red-500 hover:bg-red-600" : ""}
+              disabled={isLoading || (!openaiKey && !showApiKeyAlert)}
             >
               {isListening ? <MicOff size={18} /> : <Mic size={18} />}
             </Button>
-            <Button type="submit" size="icon" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              size="icon" 
+              disabled={isLoading || !message.trim() || (!openaiKey && !showApiKeyAlert)}
+            >
               <Send size={18} />
             </Button>
           </form>
+          
+          {isGuestMode && (
+            <div className="mt-2 text-xs flex items-center justify-center text-muted-foreground">
+              <Lock size={12} className="mr-1" />
+              <span>Some premium features require sign in</span>
+            </div>
+          )}
+          
           {isExpanded && (
             <div className="mt-2 text-xs text-muted-foreground">
               <p>Try asking: "Analyze the market potential for my AI healthcare startup" or "Find investors for my fintech solution"</p>

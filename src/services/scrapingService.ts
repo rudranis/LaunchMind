@@ -1,268 +1,464 @@
-
 import { TrendingStartup, MarketTrend } from '@/models/MarketInsight';
 import { connectToDatabase } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
 
-// Mock function that would be replaced with actual web scraping logic in production
-export async function scrapeTrendingStartups(industry?: string[]): Promise<{ success: boolean, data?: TrendingStartup[], error?: string }> {
+// Mock data for trending startups (in a real app, this would use web scraping)
+const mockTrendingStartups: TrendingStartup[] = [
+  {
+    name: "NeuralWave AI",
+    website: "https://neuralwave.ai",
+    description: "AI-powered decision support platform for healthcare professionals",
+    industry: ["Healthcare", "Artificial Intelligence"],
+    fundingStage: "Series A",
+    totalFunding: 8500000,
+    lastFundingDate: new Date("2023-09-15"),
+    lastFundingAmount: 5000000,
+    investors: ["HealthTech Ventures", "AI Capital", "FutureMed Partners"],
+    tractionMetrics: {
+      users: 15000,
+      revenue: "$3M ARR",
+      growth: "128% YoY"
+    },
+    foundedYear: 2020,
+    location: "Boston, MA",
+    founders: ["Dr. Maria Chen", "Alex Rodriguez"],
+    source: "Crunchbase",
+    scrapedDate: new Date(),
+    trendingScore: 92
+  },
+  {
+    name: "GreenSync",
+    website: "https://greensync.eco",
+    description: "Carbon tracking and sustainability management platform for enterprise",
+    industry: ["CleanTech", "Enterprise Software"],
+    fundingStage: "Seed",
+    totalFunding: 3200000,
+    lastFundingDate: new Date("2023-10-01"),
+    lastFundingAmount: 3200000,
+    investors: ["ClimateAction Fund", "Sustainable Futures"],
+    tractionMetrics: {
+      users: 500,
+      revenue: "$1.2M ARR",
+      growth: "200% YoY"
+    },
+    foundedYear: 2021,
+    location: "San Francisco, CA",
+    founders: ["Emma Wilson", "Thomas Kumar"],
+    source: "AngelList",
+    scrapedDate: new Date(),
+    trendingScore: 88
+  },
+  {
+    name: "CryptoSafe",
+    website: "https://cryptosafe.finance",
+    description: "Institutional-grade security infrastructure for digital assets",
+    industry: ["Fintech", "Blockchain", "Cybersecurity"],
+    fundingStage: "Series B",
+    totalFunding: 28000000,
+    lastFundingDate: new Date("2023-08-12"),
+    lastFundingAmount: 15000000,
+    investors: ["Blockchain Capital", "Fintech Ventures", "Security Alliance Partners"],
+    tractionMetrics: {
+      users: 200,
+      revenue: "$8M ARR",
+      growth: "85% YoY"
+    },
+    foundedYear: 2019,
+    location: "New York, NY",
+    founders: ["James Monroe", "Sarah Khan"],
+    source: "TechCrunch",
+    scrapedDate: new Date(),
+    trendingScore: 85
+  },
+  {
+    name: "SupplyMind",
+    website: "https://supplymind.io",
+    description: "AI-powered supply chain optimization and prediction platform",
+    industry: ["Supply Chain", "Artificial Intelligence", "Enterprise Software"],
+    fundingStage: "Seed",
+    totalFunding: 4500000,
+    lastFundingDate: new Date("2023-09-28"),
+    lastFundingAmount: 4500000,
+    investors: ["Logistics Capital", "Enterprise AI Fund"],
+    tractionMetrics: {
+      users: 50,
+      revenue: "$800K ARR",
+      growth: "160% YoY"
+    },
+    foundedYear: 2022,
+    location: "Seattle, WA",
+    founders: ["David Chen", "Priya Patel"],
+    source: "ProductHunt",
+    scrapedDate: new Date(),
+    trendingScore: 82
+  },
+  {
+    name: "EduVerse",
+    website: "https://eduverse.learning",
+    description: "Immersive VR/AR educational platform for schools and universities",
+    industry: ["EdTech", "Virtual Reality", "Augmented Reality"],
+    fundingStage: "Series A",
+    totalFunding: 12000000,
+    lastFundingDate: new Date("2023-07-15"),
+    lastFundingAmount: 9000000,
+    investors: ["Education Ventures", "Future Learning Fund", "XR Capital"],
+    tractionMetrics: {
+      users: 350000,
+      revenue: "$5M ARR",
+      growth: "110% YoY"
+    },
+    foundedYear: 2020,
+    location: "Austin, TX",
+    founders: ["Michael Brown", "Sophia Rodriguez"],
+    source: "Crunchbase",
+    scrapedDate: new Date(),
+    trendingScore: 79
+  },
+  {
+    name: "HealthSync",
+    website: "https://healthsync.care",
+    description: "Remote patient monitoring platform with predictive analytics",
+    industry: ["Healthcare", "IoT", "Artificial Intelligence"],
+    fundingStage: "Series A",
+    totalFunding: 11000000,
+    lastFundingDate: new Date("2023-08-05"),
+    lastFundingAmount: 7000000,
+    investors: ["Health Innovations", "Patient Care Ventures", "MedTech Fund"],
+    tractionMetrics: {
+      users: 100000,
+      revenue: "$3.5M ARR",
+      growth: "95% YoY"
+    },
+    foundedYear: 2021,
+    location: "Chicago, IL",
+    founders: ["Dr. Robert Johnson", "Lisa Chen"],
+    source: "AngelList",
+    scrapedDate: new Date(),
+    trendingScore: 77
+  },
+  {
+    name: "RetailAI",
+    website: "https://retailai.store",
+    description: "Computer vision platform for retail analytics and customer insights",
+    industry: ["Retail Tech", "Computer Vision", "Artificial Intelligence"],
+    fundingStage: "Seed",
+    totalFunding: 5500000,
+    lastFundingDate: new Date("2023-09-10"),
+    lastFundingAmount: 5500000,
+    investors: ["Retail Innovation Fund", "Vision Capital", "AI Retail Ventures"],
+    tractionMetrics: {
+      users: 75,
+      revenue: "$1M ARR",
+      growth: "180% YoY"
+    },
+    foundedYear: 2022,
+    location: "Toronto, Canada",
+    founders: ["Jennifer Wong", "Daniel Rodriguez"],
+    source: "ProductHunt",
+    scrapedDate: new Date(),
+    trendingScore: 75
+  },
+  {
+    name: "FarmFuture",
+    website: "https://farmfuture.ag",
+    description: "Precision agriculture platform using drone data and machine learning",
+    industry: ["AgTech", "Drones", "Machine Learning"],
+    fundingStage: "Series A",
+    totalFunding: 9500000,
+    lastFundingDate: new Date("2023-06-20"),
+    lastFundingAmount: 6000000,
+    investors: ["AgriTech Capital", "Future Farming Fund", "Sustainable Growth Partners"],
+    tractionMetrics: {
+      users: 5000,
+      revenue: "$2.8M ARR",
+      growth: "65% YoY"
+    },
+    foundedYear: 2019,
+    location: "Des Moines, IA",
+    founders: ["John Miller", "Maria Garcia"],
+    source: "Crunchbase",
+    scrapedDate: new Date(),
+    trendingScore: 73
+  },
+  {
+    name: "LegalAssist AI",
+    website: "https://legalassist.ai",
+    description: "AI-powered legal document analysis and contract management",
+    industry: ["Legal Tech", "Artificial Intelligence", "Enterprise Software"],
+    fundingStage: "Seed",
+    totalFunding: 3800000,
+    lastFundingDate: new Date("2023-08-30"),
+    lastFundingAmount: 3800000,
+    investors: ["Legal Innovation Capital", "AI Ventures"],
+    tractionMetrics: {
+      users: 250,
+      revenue: "$900K ARR",
+      growth: "140% YoY"
+    },
+    foundedYear: 2021,
+    location: "Washington, DC",
+    founders: ["Katherine Johnson", "Mark Davis"],
+    source: "AngelList",
+    scrapedDate: new Date(),
+    trendingScore: 71
+  },
+  {
+    name: "SpaceTech Systems",
+    website: "https://spacetech.systems",
+    description: "Affordable satellite launch and deployment services for small payloads",
+    industry: ["Space", "Aerospace", "Hardware"],
+    fundingStage: "Series B",
+    totalFunding: 45000000,
+    lastFundingDate: new Date("2023-05-15"),
+    lastFundingAmount: 25000000,
+    investors: ["Space Ventures", "Orbital Capital", "Future Frontiers Fund"],
+    tractionMetrics: {
+      users: 15,
+      revenue: "$12M ARR",
+      growth: "50% YoY"
+    },
+    foundedYear: 2018,
+    location: "Houston, TX",
+    founders: ["Dr. Alan Chen", "Samantha Williams"],
+    source: "TechCrunch",
+    scrapedDate: new Date(),
+    trendingScore: 68
+  }
+];
+
+// Mock data for market trends (in a real app, this would use web scraping and NLP)
+const mockMarketTrends: MarketTrend[] = [
+  {
+    trend: "Zero-Knowledge Proof Adoption",
+    description: "Growing adoption of zero-knowledge proofs for privacy-preserving computation across industries.",
+    industry: ["Blockchain", "Cybersecurity", "Fintech"],
+    impactLevel: "High",
+    timeframe: "Mid-term",
+    sources: ["CoinDesk", "TechCrunch", "Blockchain Research Papers"],
+    relatedStartups: ["ZKSecure", "PrivacyChain", "ZKTech"],
+    opportunities: [
+      "Build privacy-focused applications", 
+      "Create ZK-based authentication solutions",
+      "Develop compliance tools using ZK proofs"
+    ],
+    threats: [
+      "High technical barriers to entry",
+      "Scalability challenges"
+    ],
+    sentimentScore: 0.85,
+    momentumScore: 0.78,
+    dateIdentified: new Date("2023-09-20")
+  },
+  {
+    trend: "Vertical SaaS Expansion",
+    description: "Industry-specific SaaS solutions gaining traction with specialized features for unique workflows.",
+    industry: ["SaaS", "Enterprise Software", "Industry-Specific Tech"],
+    impactLevel: "High",
+    timeframe: "Short-term",
+    sources: ["SaaS Quarterly", "Industry Reports", "VC Trend Analysis"],
+    relatedStartups: ["RestaurantOS", "ConstructionCloud", "LegalFlow"],
+    opportunities: [
+      "Target underserved industries",
+      "Create deep workflow integrations",
+      "Build industry-specific AI features"
+    ],
+    threats: [
+      "Market fragmentation",
+      "Limited TAM per vertical"
+    ],
+    sentimentScore: 0.92,
+    momentumScore: 0.85,
+    dateIdentified: new Date("2023-09-15")
+  },
+  {
+    trend: "Digital Twin Expansion Beyond Manufacturing",
+    description: "Digital twin technology expanding from manufacturing to healthcare, smart cities, and retail.",
+    industry: ["IoT", "Healthcare", "Smart Cities", "Retail Tech"],
+    impactLevel: "Medium",
+    timeframe: "Mid-term",
+    sources: ["IoT Analytics", "Gartner Research", "Industry Reports"],
+    relatedStartups: ["TwinHealth", "CityTwin", "RetailMirror"],
+    opportunities: [
+      "Create industry-specific digital twin platforms",
+      "Develop visualization and simulation tools",
+      "Build predictive maintenance solutions"
+    ],
+    threats: [
+      "Data quality and integration challenges",
+      "High implementation costs"
+    ],
+    sentimentScore: 0.75,
+    momentumScore: 0.65,
+    dateIdentified: new Date("2023-08-10")
+  },
+  {
+    trend: "API-First Companies",
+    description: "Rise of companies building their entire business around specialized APIs and developer tools.",
+    industry: ["Developer Tools", "Enterprise Software", "FinTech"],
+    impactLevel: "High",
+    timeframe: "Short-term",
+    sources: ["TechCrunch", "Developer Surveys", "VC Funding Reports"],
+    relatedStartups: ["Stripe", "Twilio", "Plaid", "API-First Startups"],
+    opportunities: [
+      "Create developer-focused APIs for complex industries",
+      "Build API management and analytics tools",
+      "Develop specialized API marketplaces"
+    ],
+    threats: [
+      "Commoditization risk",
+      "Dependency on platform ecosystems"
+    ],
+    sentimentScore: 0.88,
+    momentumScore: 0.80,
+    dateIdentified: new Date("2023-09-01")
+  },
+  {
+    trend: "Carbon Accounting Solutions",
+    description: "Growing demand for software that helps companies measure, report, and reduce their carbon footprint.",
+    industry: ["CleanTech", "Enterprise Software", "Sustainability"],
+    impactLevel: "Medium",
+    timeframe: "Mid-term",
+    sources: ["Climate Tech VC", "ESG Reports", "Regulatory Updates"],
+    relatedStartups: ["CarbonTrack", "EmissionIQ", "ClimateOS"],
+    opportunities: [
+      "Create industry-specific carbon accounting tools",
+      "Develop supply chain emissions tracking",
+      "Build carbon offset marketplaces"
+    ],
+    threats: [
+      "Evolving regulatory landscape",
+      "Challenges in standardization"
+    ],
+    sentimentScore: 0.82,
+    momentumScore: 0.70,
+    dateIdentified: new Date("2023-07-15")
+  }
+];
+
+// Function to simulate web scraping for market trends
+export const analyzeMarketTrends = async (industries?: string[]): Promise<{ success: boolean; data?: MarketTrend[]; error?: string }> => {
   try {
-    // In a real implementation, this is where you would use libraries like Cheerio, Puppeteer, or API connections
-    // to scrape data from Crunchbase, AngelList, ProductHunt, and TechCrunch
+    // In a real app, this would call web scraping services and NLP analysis
+    // Wait a bit to simulate the scraping process
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // For now, return mock data
-    const mockTrendingStartups: TrendingStartup[] = [
-      {
-        name: "NeuralLens AI",
-        website: "https://neurallens.ai",
-        description: "Computer vision platform that transforms visual data into actionable insights for retail and security.",
-        industry: ["AI", "Computer Vision", "Retail Analytics"],
-        fundingStage: "Series A",
-        totalFunding: 8500000,
-        lastFundingDate: new Date("2023-10-15"),
-        lastFundingAmount: 5000000,
-        investors: ["Horizon Ventures", "Tech Pioneers Fund", "AI Capital"],
-        tractionMetrics: {
-          users: 1200,
-          revenue: "$2.5M ARR",
-          growth: "126% YoY"
-        },
-        foundedYear: 2021,
-        location: "San Francisco, CA",
-        founders: ["Sarah Chen", "Michael Rodriguez"],
-        source: "Crunchbase",
-        scrapedDate: new Date(),
-        trendingScore: 86
-      },
-      {
-        name: "FinanceFlow",
-        website: "https://financeflow.io",
-        description: "Automated financial forecasting and budgeting platform for small businesses.",
-        industry: ["FinTech", "SaaS", "SMB Solutions"],
-        fundingStage: "Seed",
-        totalFunding: 3200000,
-        lastFundingDate: new Date("2023-11-20"),
-        lastFundingAmount: 3200000,
-        investors: ["Fintech Growth Fund", "SaaS Capital", "Founders Fund"],
-        tractionMetrics: {
-          users: 5500,
-          revenue: "$1.2M ARR",
-          growth: "95% YoY"
-        },
-        foundedYear: 2022,
-        location: "New York, NY",
-        founders: ["Alex Johnson", "Lisa Williams"],
-        source: "AngelList",
-        scrapedDate: new Date(),
-        trendingScore: 72
-      },
-      {
-        name: "MediSync",
-        website: "https://medisync.health",
-        description: "Remote patient monitoring solution with AI-driven health insights.",
-        industry: ["HealthTech", "AI", "Telemedicine"],
-        fundingStage: "Series A",
-        totalFunding: 12000000,
-        lastFundingDate: new Date("2023-09-05"),
-        lastFundingAmount: 7500000,
-        investors: ["Health Ventures", "Medical Innovation Fund", "Tech Health Capital"],
-        tractionMetrics: {
-          users: 850,
-          revenue: "$3.7M ARR",
-          growth: "78% YoY"
-        },
-        foundedYear: 2020,
-        location: "Boston, MA",
-        founders: ["Dr. James Taylor", "Emily Rodriguez"],
-        source: "TechCrunch",
-        scrapedDate: new Date(),
-        trendingScore: 65
-      }
-    ];
-    
-    // In a real app, we would store the scraped data in MongoDB
-    const { db } = await connectToDatabase();
-    
-    // Store trending startups in their own collection
-    if (mockTrendingStartups.length > 0) {
-      await db.collection('trendingStartups').insertMany(
-        mockTrendingStartups.map(startup => ({
-          ...startup,
-          scrapedDate: new Date()
-        }))
+    // Filter trends by industry if specified
+    let trends = [...mockMarketTrends];
+    if (industries && industries.length > 0) {
+      trends = trends.filter(trend => 
+        trend.industry.some(ind => 
+          industries.some(industry => 
+            ind.toLowerCase().includes(industry.toLowerCase())
+          )
+        )
       );
-      
-      // Also associate with relevant market insights
-      if (industry && industry.length > 0) {
-        const marketInsights = await db.collection('marketInsights').find({
-          industry: { $in: industry }
-        }).toArray();
-        
-        for (const insight of marketInsights) {
-          await db.collection('marketInsights').updateOne(
-            { _id: insight._id },
-            { 
-              $set: { 
-                trendingStartups: mockTrendingStartups.filter(startup => 
-                  startup.industry.some(ind => insight.industry.includes(ind))
-                ),
-                lastUpdated: new Date()
-              } 
-            }
-          );
-        }
-      }
     }
     
-    return { success: true, data: mockTrendingStartups };
+    // Save to database for future reference
+    try {
+      const { db } = await connectToDatabase();
+      
+      // Store trends in the database with timestamp
+      const timestamp = new Date();
+      const trendsToInsert = trends.map(trend => ({
+        ...trend,
+        scrapedDate: timestamp
+      }));
+      
+      await db.collection('marketTrends').insertMany(trendsToInsert);
+    } catch (dbError) {
+      console.error('Error saving market trends to database:', dbError);
+      // Continue even if database save fails
+    }
+    
+    return { success: true, data: trends };
   } catch (error) {
-    console.error('Failed to scrape trending startups:', error);
-    return { success: false, error: 'Failed to scrape trending startups' };
+    console.error('Error analyzing market trends:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to analyze market trends' 
+    };
   }
-}
+};
 
-export async function analyzeMarketTrends(industry?: string[]): Promise<{ success: boolean, data?: MarketTrend[], error?: string }> {
+// Function to simulate web scraping for trending startups
+export const scrapeTrendingStartups = async (industries?: string[]): Promise<{ success: boolean; data?: TrendingStartup[]; error?: string }> => {
   try {
-    // In a real implementation, this would connect to AI/ML models and perform NLP analysis
-    // on news articles, financial reports, and other market data
+    // In a real app, this would use web scraping to get data from Crunchbase, AngelList, etc.
+    // Wait a bit to simulate the scraping process
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // For now, return mock data
-    const mockTrends: MarketTrend[] = [
-      {
-        trend: "AI-Powered Workflow Automation",
-        description: "Rising adoption of AI for automating repetitive business processes, especially in mid-market companies.",
-        industry: ["AI", "Enterprise Software", "Productivity"],
-        impactLevel: "High",
-        timeframe: "Mid-term",
-        sources: ["Gartner Research", "CB Insights", "Industry Reports"],
-        opportunities: [
-          "Integration with legacy systems", 
-          "Industry-specific workflow templates", 
-          "Low-code customization options"
-        ],
-        threats: [
-          "Increasing competition from established vendors", 
-          "Data privacy concerns", 
-          "Integration challenges"
-        ],
-        sentimentScore: 0.78,
-        momentumScore: 0.92,
-        dateIdentified: new Date()
-      },
-      {
-        trend: "Embedded Fintech Solutions",
-        description: "Non-financial applications integrating financial services like payments, lending, and insurance.",
-        industry: ["FinTech", "SaaS", "E-commerce"],
-        impactLevel: "High",
-        timeframe: "Short-term",
-        sources: ["Financial Times", "TechCrunch", "Fintech Insider"],
-        opportunities: [
-          "Revenue diversification for SaaS companies", 
-          "Reduced friction in financial transactions", 
-          "Cross-selling opportunities"
-        ],
-        threats: [
-          "Regulatory compliance requirements", 
-          "Security concerns", 
-          "Established financial institution competition"
-        ],
-        sentimentScore: 0.85,
-        momentumScore: 0.89,
-        dateIdentified: new Date()
-      },
-      {
-        trend: "Digital Therapeutics",
-        description: "Software-based interventions to prevent, manage, or treat medical disorders or diseases.",
-        industry: ["HealthTech", "MedTech", "Digital Health"],
-        impactLevel: "Medium",
-        timeframe: "Long-term",
-        sources: ["Nature Digital Medicine", "JAMA", "Rock Health Reports"],
-        opportunities: [
-          "Remote patient monitoring integration", 
-          "Reimbursement pathways through insurance", 
-          "Clinical validation partnerships"
-        ],
-        threats: [
-          "Lengthy regulatory approval processes", 
-          "Clinical validation requirements", 
-          "Healthcare system adoption barriers"
-        ],
-        sentimentScore: 0.72,
-        momentumScore: 0.65,
-        dateIdentified: new Date()
-      }
-    ];
-    
-    // In a real app, we would store the analyzed trends in MongoDB
-    const { db } = await connectToDatabase();
-    
-    if (mockTrends.length > 0) {
-      // Filter trends by industry if provided
-      const filteredTrends = industry && industry.length > 0 
-        ? mockTrends.filter(trend => trend.industry.some(ind => industry.includes(ind)))
-        : mockTrends;
-      
-      // Update relevant market insights with the new trends
-      if (industry && industry.length > 0) {
-        const marketInsights = await db.collection('marketInsights').find({
-          industry: { $in: industry }
-        }).toArray();
-        
-        for (const insight of marketInsights) {
-          // Add the new trends without duplicating
-          const existingTrends = insight.trends || [];
-          const newTrends = filteredTrends.filter(newTrend => 
-            !existingTrends.some((existingTrend: MarketTrend) => 
-              existingTrend.trend === newTrend.trend
-            )
-          );
-          
-          await db.collection('marketInsights').updateOne(
-            { _id: insight._id },
-            { 
-              $set: { 
-                trends: [...existingTrends, ...newTrends],
-                lastUpdated: new Date()
-              } 
-            }
-          );
-        }
-      } else {
-        // Store trends in their own collection for reference
-        await db.collection('marketTrends').insertMany(
-          mockTrends.map(trend => ({
-            ...trend,
-            dateIdentified: new Date()
-          }))
-        );
-      }
+    // Filter startups by industry if specified
+    let startups = [...mockTrendingStartups];
+    if (industries && industries.length > 0) {
+      startups = startups.filter(startup => 
+        startup.industry.some(ind => 
+          industries.some(industry => 
+            ind.toLowerCase().includes(industry.toLowerCase())
+          )
+        )
+      );
     }
     
-    return { success: true, data: mockTrends };
+    // Save to database for future reference
+    try {
+      const { db } = await connectToDatabase();
+      
+      // Update timestamps
+      const timestamp = new Date();
+      const startupsToInsert = startups.map(startup => ({
+        ...startup,
+        scrapedDate: timestamp
+      }));
+      
+      await db.collection('trendingStartups').insertMany(startupsToInsert);
+    } catch (dbError) {
+      console.error('Error saving trending startups to database:', dbError);
+      // Continue even if database save fails
+    }
+    
+    return { success: true, data: startups };
   } catch (error) {
-    console.error('Failed to analyze market trends:', error);
-    return { success: false, error: 'Failed to analyze market trends' };
+    console.error('Error scraping trending startups:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to scrape trending startups' 
+    };
   }
-}
+};
 
-// Function to get trending startups from the database
-export async function getTrendingStartups(industry?: string[], limit: number = 10): Promise<{ success: boolean, data?: TrendingStartup[], error?: string }> {
+// Function to get trending startups from the database or scrape if needed
+export const getTrendingStartups = async (industries?: string[], limit: number = 10): Promise<{ success: boolean; data?: TrendingStartup[]; error?: string }> => {
   try {
     const { db } = await connectToDatabase();
     
-    // Build query based on industry filter
-    const query = industry && industry.length > 0 
-      ? { industry: { $in: industry } }
+    // Create query based on industries
+    const query = industries && industries.length > 0 
+      ? { industry: { $in: industries } }
       : {};
     
-    const startups = await db.collection('trendingStartups')
+    // Get startups from database
+    const dbStartups = await db.collection('trendingStartups')
       .find(query)
       .sort({ trendingScore: -1 })
       .limit(limit)
       .toArray();
     
-    return { success: true, data: startups as TrendingStartup[] };
+    // If we have enough results, return them
+    if (dbStartups && dbStartups.length > 0) {
+      // Cast to ensure the correct return type
+      return { 
+        success: true, 
+        data: dbStartups as unknown as TrendingStartup[]
+      };
+    }
+    
+    // Otherwise, scrape new data
+    return await scrapeTrendingStartups(industries);
   } catch (error) {
-    console.error('Failed to fetch trending startups:', error);
-    return { success: false, error: 'Failed to fetch trending startups' };
+    console.error('Error getting trending startups:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to get trending startups' 
+    };
   }
-}
+};
