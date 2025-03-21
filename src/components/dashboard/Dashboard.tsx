@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Info, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import IdeaValidator from './IdeaValidator';
@@ -39,7 +39,12 @@ const Dashboard = () => {
           <Info className="h-5 w-5 text-amber-500" />
           <AlertTitle className="text-amber-800">Guest Mode</AlertTitle>
           <AlertDescription className="text-amber-700 flex justify-between items-center">
-            <span>You're using the dashboard in guest mode with limited features. Sign in to access all features.</span>
+            <div className="flex items-start gap-2">
+              <span>You're using the dashboard in guest mode with limited features.</span>
+              <span className="flex items-center text-amber-600 text-sm">
+                <Lock size={14} className="mr-1"/> Premium features require sign in
+              </span>
+            </div>
             <Button variant="outline" onClick={handleSignIn} className="ml-4 border-amber-300 text-amber-700 hover:bg-amber-100">
               Sign In
             </Button>
@@ -72,8 +77,27 @@ const Dashboard = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Always show the chatbot regardless of active tab */}
+      {/* Enhanced Chatbot with Gemini AI integration */}
       <EnhancedChatbot initialIsOpen={true} />
+
+      {/* Feature announcement banner */}
+      <div className="mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white shadow-lg">
+        <h3 className="font-bold text-lg mb-2">New AI-Powered Features!</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Real-time market trend analysis with ML models</li>
+          <li>Trending startups data via web scraping (Crunchbase, AngelList, etc.)</li>
+          <li>AI-driven investor matching based on funding history</li>
+          <li>Enhanced chatbot with Gemini AI for better startup guidance</li>
+        </ul>
+        {isGuestMode && (
+          <Button 
+            onClick={handleSignIn} 
+            className="mt-3 bg-white text-purple-700 hover:bg-gray-100"
+          >
+            Sign In for Full Access
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

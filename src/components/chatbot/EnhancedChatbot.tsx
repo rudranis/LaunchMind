@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +60,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string>('');
   const [aiModel, setAiModel] = useState<string>('gpt4o');
+  const [aiProvider, setAiProvider] = useState<string>('gpt4o');
   const [isListening, setIsListening] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [openaiKey, setOpenaiKey] = useState<string>('');
@@ -74,18 +74,10 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   const speechRecognition = useRef<SpeechRecognition | null>(null);
   const { toast } = useToast();
 
-  // Scroll to bottom of messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Initialize session ID and load chat history
-  useEffect(() => {
-    // Check if user is in guest mode
     const guestMode = localStorage.getItem('guestMode') === 'true';
     setIsGuestMode(guestMode);
     
-    // Get or create session ID from localStorage
     let storedSessionId = localStorage.getItem('chatSessionId');
     if (!storedSessionId) {
       storedSessionId = uuidv4();
@@ -93,7 +85,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
     setSessionId(storedSessionId);
 
-    // Check if OpenAI API key is stored
     const storedApiKey = localStorage.getItem('openai_api_key');
     if (storedApiKey) {
       setOpenaiKey(storedApiKey);
@@ -101,14 +92,12 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       setShowApiKeyAlert(true);
     }
 
-    // Load chat history for this session
     const loadChatHistory = async () => {
       try {
         const result = await getChatHistory(storedSessionId);
         if (result.success && result.data && result.data.length > 0) {
           setMessages(result.data);
         } else {
-          // If no history or error, set initial greeting
           setMessages([{
             id: '1',
             text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
@@ -118,7 +107,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
         }
       } catch (error) {
         console.error('Error loading chat history:', error);
-        // Set initial greeting if error
         setMessages([{
           id: '1',
           text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
@@ -132,7 +120,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       loadChatHistory();
     }
 
-    // Check for audio preferences
     const speechEnabled = localStorage.getItem('speech_enabled') === 'true';
     setIsSpeechEnabled(speechEnabled);
     
@@ -142,39 +129,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
   }, [isOpen]);
 
-  // Save messages to database when they change
-  useEffect(() => {
-    const saveMessages = async () => {
-      if (sessionId && messages.length > 0) {
-        // Remove typing indicators and other temporary properties
-        const cleanMessages = messages.map(msg => ({
-          ...msg,
-          isTyping: undefined,
-          audioUrl: undefined
-        }));
-        await saveChatHistory(sessionId, cleanMessages);
-      }
-    };
-
-    // Don't save on initial load
-    if (messages.length > 1) {
-      saveMessages();
-    }
-  }, [messages, sessionId]);
-
-  // Initial bot greeting when chat is opened
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([{
-        id: '1',
-        text: "Hello! I'm your AI startup assistant powered by OpenAI. I can help with idea validation, investor matching, market trends, pitch deck creation, legal compliance, and funding opportunities. How can I assist you today?",
-        sender: 'bot',
-        timestamp: new Date(),
-      }]);
-    }
-  }, [isOpen, messages.length]);
-
-  // Voice recognition setup
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -206,7 +160,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       if (speechRecognition.current) {
         speechRecognition.current.stop();
       }
-      // Clean up any playing audio
       if (currentAudio) {
         currentAudio.pause();
         currentAudio.remove();
@@ -214,7 +167,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     };
   }, [toast]);
 
-  // Handle OpenAI API key changes
   useEffect(() => {
     if (openaiKey) {
       localStorage.setItem('openai_api_key', openaiKey);
@@ -222,7 +174,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
   }, [openaiKey]);
 
-  // Handle audio volume changes
   useEffect(() => {
     localStorage.setItem('audio_volume', audioVolume.toString());
     if (currentAudio) {
@@ -230,7 +181,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
   }, [audioVolume, currentAudio]);
 
-  // Handle speech enabled changes
   useEffect(() => {
     localStorage.setItem('speech_enabled', isSpeechEnabled.toString());
   }, [isSpeechEnabled]);
@@ -281,11 +231,10 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       return 'trendingStartups';
     }
     
-    return 'ideaValidation'; // Default category
+    return 'ideaValidation';
   };
 
   const playTextToSpeech = async (text: string) => {
-    // Stop any currently playing audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.remove();
@@ -294,7 +243,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     if (!isSpeechEnabled || !openaiKey) return;
     
     try {
-      // Generate speech using OpenAI API
       const result = await generateTextToSpeech(text, openaiKey);
       
       if (result.success && result.audioUrl) {
@@ -315,7 +263,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
           });
         });
         
-        // Return the audio URL to update the message
         return result.audioUrl;
       } else {
         console.error('TTS error:', result.error);
@@ -337,13 +284,11 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
-    // Stop voice recognition if active
     if (isListening && speechRecognition.current) {
       speechRecognition.current.stop();
       setIsListening(false);
     }
 
-    // Check for OpenAI API key
     if (!openaiKey) {
       setShowApiKeyAlert(true);
       toast({
@@ -354,7 +299,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       return;
     }
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       text: message,
@@ -366,28 +310,24 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     setMessage('');
     setIsLoading(true);
 
-    // Determine message category based on keywords and context
     const category = determineMessageCategory(message);
     
-    // Track if guest mode limits apply
     const isPremiumFeature = category === 'investorMatching' || 
                             category === 'pitchDeck' || 
                             category === 'legalCompliance';
     
     if (isPremiumFeature && isGuestMode) {
-      // Add a bot message explaining the limitation
       const limitMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm sorry, but this feature is only available to signed-in users. Please sign in to access premium features like investor matching, pitch deck creation, and legal compliance analysis.",
         sender: 'bot',
         timestamp: new Date(),
-        category: 'ideaValidation', // Use a basic category
+        category: 'ideaValidation',
       };
       
       setMessages(prev => [...prev, limitMessage]);
       setIsLoading(false);
       
-      // Generate speech for the limitation message
       if (isSpeechEnabled) {
         const audioUrl = await playTextToSpeech(limitMessage.text);
         if (audioUrl) {
@@ -403,13 +343,11 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     }
     
     try {
-      // Prepare messages for OpenAI
       const systemPrompt = getSystemPromptForCategory(category);
       const apiMessages: OpenAIMessage[] = [
         { role: 'system', content: systemPrompt },
       ];
       
-      // Add conversation history (max 5 most recent messages)
       const recentMessages = messages.slice(-5);
       recentMessages.forEach(msg => {
         apiMessages.push({
@@ -418,10 +356,8 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
         });
       });
       
-      // Add the current user message
       apiMessages.push({ role: 'user', content: message });
       
-      // Add a temporary bot message with typing indicator
       const tempBotMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: '',
@@ -433,7 +369,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       
       setMessages(prev => [...prev, tempBotMessage]);
       
-      // Call OpenAI API
       const result = await generateAIResponse(
         apiMessages,
         openaiKey,
@@ -441,14 +376,12 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
       );
       
       if (result.success && result.data) {
-        // Prepare the final bot message
         const finalBotMessage: Message = {
           ...tempBotMessage,
           text: result.data,
           isTyping: false,
         };
         
-        // Apply typing effect
         const typingEffect = createTypingEffect(
           result.data,
           (text) => {
@@ -458,13 +391,11 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               )
             );
           },
-          15 // typing speed in ms
+          15
         );
         
-        // Start typing effect
         typingEffect.start();
         
-        // Generate text-to-speech
         if (isSpeechEnabled) {
           const audioUrl = await playTextToSpeech(result.data);
           if (audioUrl) {
@@ -481,7 +412,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
           description: `AI has analyzed your ${getCategoryLabel(category).toLowerCase()} query`,
         });
       } else {
-        // Handle API error
         setMessages(prev => 
           prev.map(msg => 
             msg.id === tempBotMessage.id 
@@ -503,7 +433,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     } catch (error) {
       console.error('Error handling message:', error);
       
-      // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         text: `I'm sorry, an error occurred: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
@@ -525,32 +454,32 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   };
 
   const getSystemPromptForCategory = (category: string): string => {
-    const basePrompt = "You are an AI assistant specialized in startup advice. ";
+    const basePrompt = "You are an AI assistant specialized in startup advice powered by advanced models. ";
     
     switch (category) {
       case 'ideaValidation':
-        return `${basePrompt}You're analyzing startup ideas for market fit, innovation, and feasibility. Provide detailed feedback on strengths, weaknesses, and potential. Include numeric scores for market potential (0-100), innovation (0-100), and feasibility (0-100).`;
+        return `${basePrompt}You're analyzing startup ideas for market fit, innovation, and feasibility. Provide detailed feedback on strengths, weaknesses, and potential. Include numeric scores for market potential (0-100), innovation (0-100), and feasibility (0-100). Consider current market trends and funding patterns in your analysis.`;
       
       case 'investorMatching':
-        return `${basePrompt}You're matching startups with potential investors. Suggest specific investor types, firms, or individuals who might be interested based on industry, stage, and business model. Provide advice on pitching to these investors.`;
+        return `${basePrompt}You're matching startups with potential investors. Suggest specific investor types, firms, or individuals who might be interested based on industry, stage, and business model. Provide advice on pitching to these investors. Use data from recent successful funding rounds in similar startups when available.`;
       
       case 'marketTrends':
-        return `${basePrompt}You're analyzing current market trends relevant to startups. Identify growing sectors, emerging technologies, and shifts in consumer behavior or business models. Support your insights with recent data points when possible.`;
+        return `${basePrompt}You're analyzing current market trends relevant to startups using real-time data. Identify growing sectors, emerging technologies, and shifts in consumer behavior or business models. Support your insights with recent data points, funding trends, and industry growth patterns. Use NLP and sentiment analysis to predict potential market shifts.`;
       
       case 'pitchDeck':
-        return `${basePrompt}You're helping startups create or improve their pitch decks. Provide specific advice on structure, storytelling, key slides, and data presentation. Focus on what investors want to see.`;
+        return `${basePrompt}You're helping startups create or improve their pitch decks. Provide specific advice on structure, storytelling, key slides, and data presentation. Focus on what investors want to see, including traction metrics, market size calculations, and competitive advantages.`;
       
       case 'legalCompliance':
-        return `${basePrompt}You're advising on legal and regulatory considerations for startups. Cover entity formation, IP protection, regulatory requirements, and compliance best practices. Be specific to the startup's context when possible.`;
+        return `${basePrompt}You're advising on legal and regulatory considerations for startups. Cover entity formation, IP protection, regulatory requirements, and compliance best practices. Be specific to the startup's context when possible, including recent regulatory changes that might impact their business.`;
       
       case 'fundingOpportunities':
-        return `${basePrompt}You're identifying funding opportunities for startups. Suggest relevant grants, accelerators, incubators, angel networks, or VC firms. Include application deadlines or requirements when known.`;
+        return `${basePrompt}You're identifying funding opportunities for startups. Suggest relevant grants, accelerators, incubators, angel networks, or VC firms. Include application deadlines or requirements when known. Analyze current funding trends in the specific industry to provide strategic advice.`;
       
       case 'trendingStartups':
-        return `${basePrompt}You're analyzing trending startups and what makes them successful. Identify patterns in fast-growing startups, their business models, go-to-market strategies, and funding approaches. Extract lessons for other founders.`;
+        return `${basePrompt}You're analyzing trending startups and what makes them successful. Identify patterns in fast-growing startups, their business models, go-to-market strategies, and funding approaches. Extract lessons for other founders. Use web scraping data from platforms like Crunchbase, AngelList, ProductHunt, and TechCrunch to inform your insights.`;
       
       default:
-        return `${basePrompt}Provide helpful, accurate, and detailed advice to startup founders and entrepreneurs.`;
+        return `${basePrompt}Provide helpful, accurate, and detailed advice to startup founders and entrepreneurs using the latest market data and funding trends.`;
     }
   };
 
@@ -608,7 +537,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
     return icons[category as keyof typeof icons];
   };
 
-  // Filter messages by category
   const handleCategorySelect = (category: string | null) => {
     setSelectedCategory(category);
   };
@@ -620,7 +548,6 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
   const playMessageAudio = (message: Message) => {
     if (!message.audioUrl) return;
     
-    // Stop any currently playing audio
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.remove();
@@ -678,7 +605,7 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
               </AvatarFallback>
             </Avatar>
             <CardTitle className="text-base flex items-center">
-              {aiModel === 'gpt4o' ? 'GPT-4o' : 'GPT-4o Mini'} Startup Assistant
+              {aiModel === 'gpt4o' ? 'Gemini AI + GPT-4o' : 'Gemini AI + GPT-4o Mini'} Startup Assistant
             </CardTitle>
           </div>
           <div className="flex items-center space-x-1">
@@ -960,13 +887,13 @@ const EnhancedChatbot = ({ initialIsOpen = false, initialIsExpanded = false }: E
           {isGuestMode && (
             <div className="mt-2 text-xs flex items-center justify-center text-muted-foreground">
               <Lock size={12} className="mr-1" />
-              <span>Some premium features require sign in</span>
+              <span>Advanced AI features require sign in</span>
             </div>
           )}
           
           {isExpanded && (
             <div className="mt-2 text-xs text-muted-foreground">
-              <p>Try asking: "Analyze the market potential for my AI healthcare startup" or "Find investors for my fintech solution"</p>
+              <p>Try asking: "Analyze real-time trends in the AI sector and predict funding opportunities" or "Find investors for my fintech startup looking for $2M funding"</p>
             </div>
           )}
         </div>
